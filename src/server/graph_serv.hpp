@@ -28,39 +28,31 @@ typedef uint64_t edge_id_t;
 typedef std::string node_id;
 typedef int centrality_type;
 
-struct mixable_graph : public framework::mixable<jubatus::graph::graph_base, std::string, mixable_graph>
+struct mixable_graph : public framework::mixable<jubatus::graph::graph_base, std::string>
 {
-  void clear(){
+  void clear() {
   };
 
-  mixable_graph(){
-    // function<std::string(const jubatus::graph::graph_base*)>
-    //   getdiff(&mixable_graph::get_diff);
-    // function<int(const jubatus::graph::graph_base*,const std::string&,std::string&)>
-    //   reduce(&mixable_graph::reduce);
-    // function<int(jubatus::graph::graph_base*, const std::string&)>
-    //   putdiff(&mixable_graph::put_diff);
-    // set_mixer(getdiff, reduce, putdiff);
-    set_default_mixer();
-  };
-
-  static std::string get_diff(const jubatus::graph::graph_base* m)
+  std::string get_diff_impl(const jubatus::graph::graph_base* m) const
   {
     std::string diff;
     m->get_diff(diff);
     return diff;
   };
-  static int reduce(const jubatus::graph::graph_base* m, const std::string& v, std::string& acc)
+
+  int reduce_impl(const jubatus::graph::graph_base* m,
+                  const std::string& v,
+                  std::string& acc) const
   {
     jubatus::graph::graph_wo_index::mix(v, acc);
     return 0;
   };
-  static int put_diff(jubatus::graph::graph_base* m, const std::string& v)
+
+  void put_diff_impl(jubatus::graph::graph_base* m,
+                     const std::string& v)
   {
     m->set_mixed_and_clear_diff(v);
-    return 0;
   };
-  //  pfi::lang::shared_ptr<jubatus::graph::graph_base> ptr;
 };
 
 typedef std::string node_id;

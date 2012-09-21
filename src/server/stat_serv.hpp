@@ -25,31 +25,27 @@ namespace jubatus{
 namespace server{
 
 struct mixable_stat : public framework::mixable<jubatus::stat::mixable_stat,
-						std::pair<double,size_t>,
-						mixable_stat>
+                                                std::pair<double,size_t> >
 {
 public:
   void clear(){}
-  mixable_stat()
-  {
-    set_default_mixer();
-  }
-  static std::pair<double,size_t> get_diff(const jubatus::stat::mixable_stat* model)
+
+  std::pair<double,size_t> get_diff_impl(const jubatus::stat::mixable_stat* model) const
   {
     return model->get_diff();
   }
-  static int reduce(const jubatus::stat::mixable_stat*,
-		    const std::pair<double,size_t>& v, std::pair<double,size_t>& acc)
+
+  int reduce_impl(const jubatus::stat::mixable_stat*,
+                  const std::pair<double,size_t>& v, std::pair<double,size_t>& acc) const
   {
     jubatus::stat::mixable_stat::reduce(v, acc);
     return 0;
   }
 
-  static int put_diff(jubatus::stat::mixable_stat* model,
-		      const std::pair<double,size_t>& v)
+  void put_diff_impl(jubatus::stat::mixable_stat* model,
+                     const std::pair<double,size_t>& v)
   {
     model->put_diff(v);
-    return 0;
   }
 
 };

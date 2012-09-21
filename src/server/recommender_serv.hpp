@@ -35,28 +35,27 @@ using jubatus::recommender::recommender_base;
 namespace jubatus {
 namespace server {
 
-struct rcmdr : public jubatus::framework::mixable<recommender_base, std::string, rcmdr>{
-  rcmdr(){
-    // function<std::string(const recommender_base*)> getdiff(&get_diff);
-    // function<int(const recommender_base*, const std::string&, std::string&)> reduce(&rcmdr::reduce);
-    // function<int(recommender_base*, const std::string&)> putdiff(&put_diff);
-    // set_mixer(getdiff, reduce, putdiff);
-    set_default_mixer();
-  }
-  static std::string get_diff(const recommender_base* model){
+struct rcmdr : public jubatus::framework::mixable<recommender_base, std::string> {
+  std::string get_diff_impl(const recommender_base* model) const {
     std::string ret;
     model->get_const_storage()->get_diff(ret);
     return ret;
   }
-  static int put_diff(recommender_base* model, std::string v){
+
+  void put_diff_impl(recommender_base* model,
+                     const std::string& v) {
     model->get_storage()->set_mixed_and_clear_diff(v);
-    return 0;
   }
-  static int reduce(const recommender_base* model, const std::string& v, std::string& acc){
+
+  int reduce_impl(const recommender_base* model,
+                  const std::string& v,
+                  std::string& acc) const {
     model->get_const_storage()->mix(v, acc);
     return 0;
   }
+
   virtual ~rcmdr(){}
+
   void clear(){}
 };
 

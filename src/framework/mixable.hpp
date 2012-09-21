@@ -47,18 +47,17 @@ public:
 };
 
 // last T is for CRTP, optional
-template <typename Model, typename Diff,
-	  typename T = dummy>
+template <typename Model, typename Diff>
 class mixable : public mixable0 {
 public:
-  mixable():
-    get_diff_fun_(&dummy_get_diff),
-    reduce_fun_(&dummy_reduce),
-    put_diff_fun_(&dummy_put_diff)
-  {};
-  virtual ~mixable(){};
+  virtual ~mixable() {}
 
   virtual void clear() = 0;
+
+  virtual Diff get_diff_impl(const Model*) const = 0;
+  virtual void put_diff_impl(Model*, const Diff&) = 0;
+  virtual int reduce_impl(const Model*, const Diff&, Diff&) const = 0;
+
   void set_model(common::cshared_ptr<Model> m){
     model_ = m;
   }
@@ -67,72 +66,55 @@ public:
     msgpack::sbuffer sbuf;
     if(model_){
       std::string buf;
-      pack_(get_diff_fun_(model_.get()), buf);
+      pack_(get_diff_impl(model_.get()), buf);
       return buf;
     }else{
       throw JUBATUS_EXCEPTION(config_not_set());
     }
   };
+
   void put_diff(const std::string& d){
     if(model_){
       Diff diff;
       unpack_(d, diff);
-      put_diff_fun_(model_.get(), diff);
+      put_diff_impl(model_.get(), diff);
     }else{
       throw JUBATUS_EXCEPTION(config_not_set());
     }
   }
+
   void reduce(const std::string& lhs, std::string& acc) const {
     Diff l, a; //<- string
     unpack_(lhs, l);
     unpack_(acc, a);
-    reduce_fun_(model_.get(), l, a);
+    reduce_impl(model_.get(), l, a);
     pack_(a, acc);
   }
+
   void save(std::ostream & os){
     model_->save(os);
   }
+
   void load(std::istream & is){
     model_->load(is);
   }
 
-  void set_mixer(function<Diff(const Model*)> get_diff_fun, //get_diff
-                 function<int(const Model*, const Diff&, Diff&)> reduce_fun, //mix
-                 function<int(Model*, const Diff&)> put_diff_fun //put_diff
-                 ) {
-    get_diff_fun_ = get_diff_fun;
-    reduce_fun_ = reduce_fun;
-    put_diff_fun_ = put_diff_fun;
-  };
-  void set_default_mixer(){
-    function<Diff(const Model*)> get_diff_fun(&T::get_diff);
-    function<int(const Model*, const Diff&, Diff&)> reduce_fun(&T::reduce);
-    function<int(Model*, const Diff&)> put_diff_fun(&T::put_diff);
-    set_mixer(get_diff_fun, reduce_fun, put_diff_fun);
-  }
-  common::cshared_ptr<Model> get_model()const{return model_;};
+  common::cshared_ptr<Model> get_model() const { return model_; }
 
-  static Diff dummy_get_diff(const Model*){ return Diff(); };
-  static int dummy_reduce(const Model*, const Diff&, Diff&){return -1;};
-  static int dummy_put_diff(Model*, const Diff&){return -1;};
 private:
   void unpack_(const std::string& buf, Diff& d) const {
     msgpack::unpacked msg;
     msgpack::unpack(&msg, buf.c_str(), buf.size());
     msg.get().convert(&d);
   }
+
   void pack_(const Diff& d, std::string& buf) const {
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, d);
     buf = std::string(sbuf.data(), sbuf.size());
   }
 
-  function<Diff(const Model*)> get_diff_fun_;
-  function<int(const Model*, const Diff&, Diff&)> reduce_fun_;
-  function<int(Model*, const Diff&)> put_diff_fun_;
-
   common::cshared_ptr<Model> model_;
-
 };
 
 template <typename Mixable>
