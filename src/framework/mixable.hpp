@@ -61,7 +61,6 @@ class mixable : public mixable0 {
   }
 
   std::string get_diff()const{
-    msgpack::sbuffer sbuf;
     if(model_){
       std::string buf;
       pack_(get_diff_impl(), buf);
