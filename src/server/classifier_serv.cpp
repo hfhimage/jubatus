@@ -51,8 +51,7 @@ classifier_serv::classifier_serv(const framework::server_argv& a)
   clsfer_.set_model(make_model());
   register_mixable(framework::mixable_cast(&clsfer_));
 
-  wm_.wm_ = common::cshared_ptr<fv_converter::weight_manager>(new weight_manager);
-  wm_.set_model(wm_.wm_);
+  wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
 
   register_mixable(framework::mixable_cast(&wm_));
 }
@@ -69,8 +68,7 @@ int classifier_serv::set_config(config_data config) {
   config_ = config;
   converter_ = converter;
 
-  wm_.wm_ = common::cshared_ptr<fv_converter::weight_manager>(new weight_manager);
-  wm_.set_model(wm_.wm_);
+  wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
   
   clsfer_.classifier_.reset(classifier_factory::create_classifier(config.method, clsfer_.get_model().get()));
 
@@ -98,8 +96,8 @@ int classifier_serv::train(std::vector<std::pair<std::string, jubatus::datum> > 
     converter_->convert(d, v);
     sort_and_merge(v);
 
-    wm_.wm_->update_weight(v);
-    wm_.wm_->get_weight(v);
+    wm_.get_model()->update_weight(v);
+    wm_.get_model()->get_weight(v);
 
     clsfer_.classifier_->train(v, data[i].first);
     count++;
@@ -120,7 +118,7 @@ std::vector<std::vector<estimate_result> > classifier_serv::classify(std::vector
     convert<datum, fv_converter::datum>(data[i], d);
     converter_->convert(d, v);
     
-    wm_.wm_->get_weight(v);
+    wm_.get_model()->get_weight(v);
 
     classify_result scores;
     clsfer_.classifier_->classify_with_scores(v, scores);

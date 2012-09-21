@@ -41,8 +41,6 @@ struct mixable_weight_manager : public framework::mixable<weight_manager, keywor
     get_model()->put_diff(diff);
   };
   void clear(){};
-
-  common::cshared_ptr<weight_manager> wm_;
 };
 
 }}
