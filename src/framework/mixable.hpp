@@ -49,7 +49,11 @@ public:
 // last T is for CRTP, optional
 template <typename Model, typename Diff>
 class mixable : public mixable0 {
-public:
+ public:
+  typedef Model model_type;
+  typedef Diff diff_type;
+  typedef common::cshared_ptr<Model> model_ptr;
+
   virtual ~mixable() {}
 
   virtual void clear() = 0;
@@ -58,7 +62,7 @@ public:
   virtual void put_diff_impl(const Diff&) = 0;
   virtual int reduce_impl(const Diff&, Diff&) const = 0;
 
-  void set_model(common::cshared_ptr<Model> m){
+  void set_model(model_ptr m){
     model_ = m;
   }
 
@@ -99,7 +103,7 @@ public:
     model_->load(is);
   }
 
-  common::cshared_ptr<Model> get_model() const { return model_; }
+  model_ptr get_model() const { return model_; }
 
 private:
   void unpack_(const std::string& buf, Diff& d) const {
@@ -114,7 +118,7 @@ private:
     buf = std::string(sbuf.data(), sbuf.size());
   }
 
-  common::cshared_ptr<Model> model_;
+  model_ptr model_;
 };
 
 template <typename Mixable>
