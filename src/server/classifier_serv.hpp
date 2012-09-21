@@ -68,7 +68,6 @@ public:
   int train(std::vector<std::pair<std::string, datum> > data);
   std::vector<std::vector<estimate_result> > classify(std::vector<datum> data)const;
 
-  common::cshared_ptr<storage::storage_base> make_model();
   void after_load();
 
   std::map<std::string, std::map<std::string, std::string> > get_status();

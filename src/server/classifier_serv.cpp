@@ -44,11 +44,18 @@ using jubatus::framework::convert;
 namespace jubatus {
 namespace server {
 
+namespace {
+
+clsfer::model_ptr make_model(const framework::server_argv& arg) {
+  return clsfer::model_ptr(storage::storage_factory::create_storage((arg.is_standalone())?"local":"local_mixture"));
+}
+
+}
 
 classifier_serv::classifier_serv(const framework::server_argv& a)
   :framework::jubatus_serv(a)
 {
-  clsfer_.set_model(make_model());
+  clsfer_.set_model(make_model(a));
   register_mixable(framework::mixable_cast(&clsfer_));
 
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
@@ -139,14 +146,10 @@ std::vector<std::vector<estimate_result> > classifier_serv::classify(std::vector
   return ret; //std::vector<estimate_results> >::ok(ret);
 }
 
-common::cshared_ptr<storage::storage_base> classifier_serv::make_model(){
-  return common::cshared_ptr<storage::storage_base>(storage::storage_factory::create_storage((a_.is_standalone())?"local":"local_mixture"));
-
-}
 // after load(..) called, users reset their own data
 void classifier_serv::after_load(){
   //  classifier_.reset(classifier_factory::create_classifier(config_.method, model_.get()));
-};
+}
 
 std::map<std::string, std::map<std::string,std::string> > classifier_serv::get_status(){
   std::map<std::string,std::string> ret0;
