@@ -11,21 +11,21 @@ def build_one(bld, name, libraries = ''):
   bld.program(
     source = __sources,
     target = 'juba'+name,
-    includes = '. ../framework',
+    includes = '.',
     use = 'jubatus_framework jubacommon_mprpc jubatus_%s %s' % (name, libraries)
     )
   if bld.env.HAVE_ZOOKEEPER_H:
     bld.program(
       source = '%s_keeper.cpp ' % name,
       target = 'juba%s_keeper' % name,
-      includes = '. ../framework',
+      includes = '.',
       use = 'PFICOMMON jubatus_framework jubacommon_mprpc'
       )
   bld.program(
     features = 'gtest',
     source = '%s_test.cpp' % name,
     target = '%s_test' % name,
-    includes = '. ../framework',
+    includes = '.',
     use = 'PFICOMMON MSGPACK jubacommon_mprpc',
     )
 

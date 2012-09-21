@@ -26,7 +26,7 @@
 #include "../storage/storage_base.hpp"
 #include "../common/shared_ptr.hpp"
 #include "regression_types.hpp"
-#include "jubatus_serv.hpp"
+#include "../framework.hpp"
 #include "diffv.hpp"
 
 

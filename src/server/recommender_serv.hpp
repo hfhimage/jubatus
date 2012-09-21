@@ -21,8 +21,7 @@
 #include <vector>
 
 #include "../common/shared_ptr.hpp"
-#include "server_util.hpp"
-#include "jubatus_serv.hpp"
+#include "../framework.hpp"
 #include "recommender_types.hpp"
 #include "../storage/recommender_storage.hpp"
 

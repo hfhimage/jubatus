@@ -27,7 +27,7 @@
 #include "../common/shared_ptr.hpp"
 
 #include "classifier_types.hpp"
-#include "jubatus_serv.hpp"
+#include "../framework.hpp"
 #include "diffv.hpp"
 #include "mixable_weight_manager.hpp"
 

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "../stat/mixable_stat.hpp"
-#include "jubatus_serv.hpp"
+#include "../framework.hpp"
 #include "stat_types.hpp"
 
 namespace jubatus{
