@@ -18,21 +18,15 @@
 #pragma once
 
 #include <string>
-#include <pficommon/lang/function.h>
 #include <iostream>
 #include <msgpack.hpp>
+
 #include "../common/exception.hpp"
 #include "../common/shared_ptr.hpp"
 #include "../config.hpp"
 
-using pfi::lang::function;
-
 namespace jubatus{
 namespace framework{
-
-class dummy
-{
-};
 
 class mixable0 {
 public:
