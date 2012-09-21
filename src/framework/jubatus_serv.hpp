@@ -69,7 +69,7 @@ public:
 
   std::string get_ipaddr()const{ return a_.eth; };
   int get_port()const{ return a_.port; };
-  int get_threadum()const{ return a_.threadnum; };
+  int get_threadnum()const{ return a_.threadnum; };
   void get_members(std::vector<std::pair<std::string,int> >&);
   void find_from_cht(const std::string& key, size_t n,
 		     std::vector<std::pair<std::string,int> >&);
