@@ -54,7 +54,7 @@ class mixable : public mixable0 {
 
   virtual Diff get_diff_impl() const = 0;
   virtual void put_diff_impl(const Diff&) = 0;
-  virtual int reduce_impl(const Diff&, Diff&) const = 0;
+  virtual void reduce_impl(const Diff&, Diff&) const = 0;
 
   void set_model(model_ptr m){
     model_ = m;

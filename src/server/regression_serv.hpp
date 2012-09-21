@@ -44,7 +44,7 @@ struct gresser : public jubatus::framework::mixable<storage::storage_base, diffv
     return ret;
   }
 
-  int reduce_impl(const diffv& v, diffv& acc) const;
+  void reduce_impl(const diffv& v, diffv& acc) const;
 
   void put_diff_impl(const diffv& v) {
     diffv diff = v;

@@ -35,10 +35,9 @@ public:
     return get_model()->get_diff();
   }
 
-  int reduce_impl(const std::pair<double,size_t>& v, std::pair<double,size_t>& acc) const
+  void reduce_impl(const std::pair<double,size_t>& v, std::pair<double,size_t>& acc) const
   {
     jubatus::stat::mixable_stat::reduce(v, acc);
-    return 0;
   }
 
   void put_diff_impl(const std::pair<double,size_t>& v)
