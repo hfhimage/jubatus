@@ -23,10 +23,29 @@ struct int_model {
 
 class mixable_int : public mixable<int_model, int> {
  public:
+  mixable_int() : diff_() {}
+
   void clear() {}
-  int get_diff_impl() const { return 0; }
-  void put_diff_impl(const int& n) {}
-  void reduce_impl(const int& diff, int& acc) const {}
+
+  int get_diff_impl() const {
+    return diff_;
+  }
+
+  void put_diff_impl(const int& n) {
+    get_model()->value += n;
+    diff_ = 0;
+  }
+
+  void reduce_impl(const int& diff, int& acc) const {
+    acc += diff;
+  }
+  
+  void add(int n) {
+    diff_ += n;
+  }
+
+ private:
+  int diff_;
 };
 
 TEST(mixable, config_not_set) {
@@ -45,6 +64,22 @@ TEST(mixable, save_load) {
   m.get_model()->value = 5;
   m.load(ss);
   EXPECT_EQ(10, m.get_model()->value);
+}
+
+TEST(mixable, trivial) {
+  mixable_int m;
+  m.set_model(mixable_int::model_ptr(new int_model));
+
+  m.add(10);
+
+  string diff1 = m.get_diff();
+  string diff2 = m.get_diff();
+
+  m.reduce(diff1, diff2);
+
+  m.put_diff(diff2);
+
+  EXPECT_EQ(20, m.get_model()->value);
 }
 
 }
