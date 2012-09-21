@@ -36,21 +36,19 @@ namespace jubatus {
 namespace server {
 
 struct rcmdr : public jubatus::framework::mixable<recommender_base, std::string> {
-  std::string get_diff_impl(const recommender_base* model) const {
+  std::string get_diff_impl() const {
     std::string ret;
-    model->get_const_storage()->get_diff(ret);
+    get_model()->get_const_storage()->get_diff(ret);
     return ret;
   }
 
-  void put_diff_impl(recommender_base* model,
-                     const std::string& v) {
-    model->get_storage()->set_mixed_and_clear_diff(v);
+  void put_diff_impl(const std::string& v) {
+    get_model()->get_storage()->set_mixed_and_clear_diff(v);
   }
 
-  int reduce_impl(const recommender_base* model,
-                  const std::string& v,
+  int reduce_impl(const std::string& v,
                   std::string& acc) const {
-    model->get_const_storage()->mix(v, acc);
+    get_model()->get_const_storage()->mix(v, acc);
     return 0;
   }
 

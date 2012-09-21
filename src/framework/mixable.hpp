@@ -54,9 +54,9 @@ public:
 
   virtual void clear() = 0;
 
-  virtual Diff get_diff_impl(const Model*) const = 0;
-  virtual void put_diff_impl(Model*, const Diff&) = 0;
-  virtual int reduce_impl(const Model*, const Diff&, Diff&) const = 0;
+  virtual Diff get_diff_impl() const = 0;
+  virtual void put_diff_impl(const Diff&) = 0;
+  virtual int reduce_impl(const Diff&, Diff&) const = 0;
 
   void set_model(common::cshared_ptr<Model> m){
     model_ = m;
@@ -66,7 +66,7 @@ public:
     msgpack::sbuffer sbuf;
     if(model_){
       std::string buf;
-      pack_(get_diff_impl(model_.get()), buf);
+      pack_(get_diff_impl(), buf);
       return buf;
     }else{
       throw JUBATUS_EXCEPTION(config_not_set());
@@ -77,7 +77,7 @@ public:
     if(model_){
       Diff diff;
       unpack_(d, diff);
-      put_diff_impl(model_.get(), diff);
+      put_diff_impl(diff);
     }else{
       throw JUBATUS_EXCEPTION(config_not_set());
     }
@@ -87,7 +87,7 @@ public:
     Diff l, a; //<- string
     unpack_(lhs, l);
     unpack_(acc, a);
-    reduce_impl(model_.get(), l, a);
+    reduce_impl(l, a);
     pack_(a, acc);
   }
 

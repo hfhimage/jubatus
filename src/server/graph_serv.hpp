@@ -33,25 +33,23 @@ struct mixable_graph : public framework::mixable<jubatus::graph::graph_base, std
   void clear() {
   };
 
-  std::string get_diff_impl(const jubatus::graph::graph_base* m) const
+  std::string get_diff_impl() const
   {
     std::string diff;
-    m->get_diff(diff);
+    get_model()->get_diff(diff);
     return diff;
   };
 
-  int reduce_impl(const jubatus::graph::graph_base* m,
-                  const std::string& v,
+  int reduce_impl(const std::string& v,
                   std::string& acc) const
   {
     jubatus::graph::graph_wo_index::mix(v, acc);
     return 0;
   };
 
-  void put_diff_impl(jubatus::graph::graph_base* m,
-                     const std::string& v)
+  void put_diff_impl(const std::string& v)
   {
-    m->set_mixed_and_clear_diff(v);
+    get_model()->set_mixed_and_clear_diff(v);
   };
 };
 

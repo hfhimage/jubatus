@@ -161,7 +161,7 @@ void mix_parameter(diffv& lhs, const diffv& rhs) {
   lhs.count += rhs.count;
 }
 
-int gresser::reduce_impl(const storage::storage_base*, const diffv& v, diffv& acc) const {
+int gresser::reduce_impl(const diffv& v, diffv& acc) const {
   mix_parameter(acc, v);
   return 0;
 }

@@ -30,22 +30,20 @@ struct mixable_stat : public framework::mixable<jubatus::stat::mixable_stat,
 public:
   void clear(){}
 
-  std::pair<double,size_t> get_diff_impl(const jubatus::stat::mixable_stat* model) const
+  std::pair<double,size_t> get_diff_impl() const
   {
-    return model->get_diff();
+    return get_model()->get_diff();
   }
 
-  int reduce_impl(const jubatus::stat::mixable_stat*,
-                  const std::pair<double,size_t>& v, std::pair<double,size_t>& acc) const
+  int reduce_impl(const std::pair<double,size_t>& v, std::pair<double,size_t>& acc) const
   {
     jubatus::stat::mixable_stat::reduce(v, acc);
     return 0;
   }
 
-  void put_diff_impl(jubatus::stat::mixable_stat* model,
-                     const std::pair<double,size_t>& v)
+  void put_diff_impl(const std::pair<double,size_t>& v)
   {
-    model->put_diff(v);
+    get_model()->put_diff(v);
   }
 
 };
