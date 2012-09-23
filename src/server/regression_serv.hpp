@@ -35,24 +35,13 @@ namespace server{
 
 struct gresser : public jubatus::framework::mixable<storage::storage_base, diffv>
 {
-  virtual ~gresser(){}
-
-  diffv get_diff_impl() const {
-    diffv ret;
-    ret.count = 1; //FIXME mixer_->get_count();
-    get_model()->get_diff(ret.v);
-    return ret;
-  }
+  diffv get_diff_impl() const;
 
   void reduce_impl(const diffv& v, diffv& acc) const;
 
-  void put_diff_impl(const diffv& v) {
-    diffv diff = v;
-    diff /= (double) v.count;
-    get_model()->set_average_and_clear_diff(diff.v);
-  }
+  void put_diff_impl(const diffv& v);
 
-  void clear(){};
+  void clear();
 
   pfi::lang::shared_ptr<regression_base> regression_;
 };

@@ -161,5 +161,21 @@ void gresser::reduce_impl(const diffv& v, diffv& acc) const {
   acc.count += v.count;
 }
 
+diffv gresser::get_diff_impl() const {
+  diffv ret;
+  ret.count = 1; //FIXME mixer_->get_count();
+  get_model()->get_diff(ret.v);
+  return ret;
+}
+
+void gresser::put_diff_impl(const diffv& v) {
+  diffv diff = v;
+  diff /= (double) v.count;
+  get_model()->set_average_and_clear_diff(diff.v);
+}
+
+void gresser::clear() {
+}
+
 } // namespace server
 } // namespace jubatus
