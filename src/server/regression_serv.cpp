@@ -149,20 +149,16 @@ feature_val3_t mix_feature(const feature_val3_t& lhs, const feature_val3_t& rhs)
   return ret;
 }
 
-void mix_parameter(diffv& lhs, const diffv& rhs) {
-  features3_t r(rhs.v);
+void gresser::reduce_impl(const diffv& v, diffv& acc) const {
+  features3_t r(v.v);
   for (size_t i = 0; i < r.size(); ++i) {
     feature_val3_t& f = r[i].second;
     for (size_t j = 0; j < f.size(); ++j) {
-      f[j].second.v1 *= rhs.count;
+      f[j].second.v1 *= v.count;
     }
   }
-  storage::detail::binop(lhs.v, r, mix_feature);
-  lhs.count += rhs.count;
-}
-
-void gresser::reduce_impl(const diffv& v, diffv& acc) const {
-  mix_parameter(acc, v);
+  storage::detail::binop(acc.v, r, mix_feature);
+  acc.count += v.count;
 }
 
 } // namespace server

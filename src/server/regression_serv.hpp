@@ -81,6 +81,5 @@ private:
   gresser gresser_;
 };
 
-void mix_parameter(diffv& lhs, const diffv& rhs);
 }
 } // namespace jubatus
