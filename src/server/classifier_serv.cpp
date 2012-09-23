@@ -56,11 +56,11 @@ classifier_serv::classifier_serv(const framework::server_argv& a)
   :framework::jubatus_serv(a)
 {
   clsfer_.set_model(make_model(a));
-  register_mixable(framework::mixable_cast(&clsfer_));
+  register_mixable(&clsfer_);
 
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
 
-  register_mixable(framework::mixable_cast(&wm_));
+  register_mixable(&wm_);
 }
 
 classifier_serv::~classifier_serv() {

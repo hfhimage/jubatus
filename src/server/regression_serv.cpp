@@ -49,7 +49,7 @@ regression_serv::regression_serv(const framework::server_argv & a)
   :jubatus_serv(a)
 {
   gresser_.set_model(make_model());
-  register_mixable(framework::mixable_cast(&gresser_));
+  register_mixable(&gresser_);
 }
 
 regression_serv::~regression_serv() {
@@ -135,6 +135,8 @@ void regression_serv::check_set_config()const
     throw JUBATUS_EXCEPTION(config_not_set());
   }
 }
+
+namespace {
   
 val3_t mix_val3(const val3_t& lhs, const val3_t& rhs) {
   return val3_t(lhs.v1 + rhs.v1,
@@ -147,6 +149,8 @@ feature_val3_t mix_feature(const feature_val3_t& lhs, const feature_val3_t& rhs)
   feature_val3_t ret(lhs);
   storage::detail::binop(ret, rhs, mix_val3, def);
   return ret;
+}
+
 }
 
 void gresser::reduce_impl(const diffv& v, diffv& acc) const {

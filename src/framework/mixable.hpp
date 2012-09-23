@@ -113,14 +113,5 @@ private:
   model_ptr model_;
 };
 
-template <typename Mixable>
-mixable0* mixable_cast(Mixable* m){
-  if(m){
-    return reinterpret_cast<mixable0*>(m);
-  }else{
-    throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error("nullpointer exception"));
-  }
-}
-
 } //server
 } //jubatus
