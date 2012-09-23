@@ -64,10 +64,6 @@ public:
   regression_serv(const framework::server_argv&);
   virtual ~regression_serv();
 
-  static diffv get_diff(const storage::storage_base*);
-  static int put_diff(storage::storage_base*, diffv v);
-  static int reduce(const storage::storage_base*, const diffv&, diffv&);
-
   int set_config(config_data);
   config_data get_config();
   int train(std::vector<std::pair<float, datum> > data);
