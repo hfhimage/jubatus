@@ -77,7 +77,7 @@ int classifier_serv::set_config(config_data config) {
 
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
   
-  clsfer_.classifier_.reset(classifier_factory::create_classifier(config.method, clsfer_.get_model().get()));
+  classifier_.reset(classifier_factory::create_classifier(config.method, clsfer_.get_model().get()));
 
   // FIXME: switch the function when set_config is done
   // because mixing method differs btwn PA, CW, etc...
@@ -106,7 +106,7 @@ int classifier_serv::train(std::vector<std::pair<std::string, jubatus::datum> > 
     wm_.get_model()->update_weight(v);
     wm_.get_model()->get_weight(v);
 
-    clsfer_.classifier_->train(v, data[i].first);
+    classifier_->train(v, data[i].first);
     count++;
   }
   // FIXME: send count incrementation to mixer
@@ -128,7 +128,7 @@ std::vector<std::vector<estimate_result> > classifier_serv::classify(std::vector
     wm_.get_model()->get_weight(v);
 
     classify_result scores;
-    clsfer_.classifier_->classify_with_scores(v, scores);
+    classifier_->classify_with_scores(v, scores);
     
     vector<estimate_result> r;
     for (vector<classify_result_elem>::const_iterator p = scores.begin();
@@ -166,7 +166,7 @@ std::map<std::string, std::map<std::string,std::string> > classifier_serv::get_s
   
 void classifier_serv::check_set_config()const
 {
-  if (!clsfer_.classifier_){
+  if (!classifier_){
     throw JUBATUS_EXCEPTION(config_not_set());
   }
 }
