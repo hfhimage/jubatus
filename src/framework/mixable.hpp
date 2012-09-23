@@ -23,7 +23,6 @@
 
 #include "../common/exception.hpp"
 #include "../common/shared_ptr.hpp"
-#include "../config.hpp"
 
 namespace jubatus{
 namespace framework{
