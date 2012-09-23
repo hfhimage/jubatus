@@ -171,6 +171,16 @@ void classifier_serv::check_set_config()const
   }
 }
 
+
+diffv clsfer::get_diff_impl() const {
+  diffv ret;
+  ret.count = 1; //FIXME mixer_->get_count();
+  get_model()->get_diff(ret.v);
+  return ret;
+}
+
+namespace {
+
 val3_t mix_val3(const val3_t& lhs, const val3_t& rhs) {
   return val3_t(lhs.v1 + rhs.v1,
                 min(lhs.v2, rhs.v2),
@@ -196,8 +206,19 @@ void mix_parameter(diffv& lhs, const diffv& rhs) {
   lhs.count += rhs.count;
 }
 
+}
+
 void clsfer::reduce_impl(const diffv& v, diffv& acc) const {
   mix_parameter(acc, v);
+}
+
+void clsfer::put_diff_impl(const diffv& v) {
+  diffv diff = v;
+  diff /= (double) v.count;
+  get_model()->set_average_and_clear_diff(diff.v);
+}
+
+void clsfer::clear() {
 }
 
 } // namespace server

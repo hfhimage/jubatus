@@ -37,22 +37,13 @@ namespace server{
 // mixable object: It would be better if classifier object itself inherits framework::mixable<>
 struct clsfer : public jubatus::framework::mixable<storage::storage_base, diffv>
 {
-  diffv get_diff_impl() const {
-    diffv ret;
-    ret.count = 1; //FIXME mixer_->get_count();
-    get_model()->get_diff(ret.v);
-    return ret;
-  }
+  diffv get_diff_impl() const;
 
   void reduce_impl(const diffv& v, diffv& acc) const;
 
-  void put_diff_impl(const diffv& v) {
-    diffv diff = v;
-    diff /= (double) v.count;
-    get_model()->set_average_and_clear_diff(diff.v);
-  }
+  void put_diff_impl(const diffv& v);
 
-  void clear(){};
+  void clear();
 
   pfi::lang::shared_ptr<classifier_base> classifier_;
 };
@@ -82,6 +73,5 @@ private:
 
 };
 
-void mix_parameter(diffv& lhs, const diffv& rhs);
 }
 } // namespace jubatus
