@@ -29,9 +29,9 @@ namespace framework{
 
 class mixable0 {
 public:
-  mixable0(){};
-  virtual ~mixable0(){};
-  virtual std::string get_diff()const = 0;
+  mixable0() {}
+  virtual ~mixable0() {}
+  virtual std::string get_diff() const = 0;
   virtual void put_diff(const std::string&) = 0;
   virtual void reduce(const std::string&, std::string&) const = 0;
   virtual void save(std::ostream & ofs) = 0;
@@ -39,7 +39,6 @@ public:
   virtual void clear() = 0;
 };
 
-// last T is for CRTP, optional
 template <typename Model, typename Diff>
 class mixable : public mixable0 {
  public:
