@@ -45,9 +45,11 @@ struct rcmdr : public jubatus::framework::mixable<recommender_base, std::string>
     get_model()->get_storage()->set_mixed_and_clear_diff(v);
   }
 
-  void reduce_impl(const std::string& v,
-                  std::string& acc) const {
-    get_model()->get_const_storage()->mix(v, acc);
+  void mix_impl(const std::string& lhs,
+                const std::string& rhs,
+                std::string& mixed) const {
+    mixed = lhs;
+    get_model()->get_const_storage()->mix(rhs, mixed);
   }
 
   virtual ~rcmdr(){}

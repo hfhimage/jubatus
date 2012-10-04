@@ -194,28 +194,26 @@ feature_val3_t mix_feature(const feature_val3_t& lhs, const feature_val3_t& rhs)
   return ret;
 }
 
-void mix_parameter(diffv& lhs, const diffv& rhs) {
+void mix_parameter(const diffv& lhs, const diffv& rhs, diffv& mixed) {
+  features3_t l(lhs.v);
   features3_t r(rhs.v);
-  for (size_t i = 0; i < r.size(); ++i) {
-    feature_val3_t& f = r[i].second;
-    for (size_t j = 0; j < f.size(); ++j) {
-      f[j].second.v1 *= rhs.count;
-    }
-  }
-  storage::detail::binop(lhs.v, r, mix_feature);
-  lhs.count += rhs.count;
+  storage::detail::mult_scalar(l, lhs.count);
+  storage::detail::mult_scalar(r, rhs.count);
+  storage::detail::binop(l, r, mix_feature);
+  storage::detail::mult_scalar(l, 1.0 / (lhs.count + rhs.count));
+  mixed.v.swap(l);
+  mixed.count = lhs.count + rhs.count;
 }
 
 }
 
-void clsfer::reduce_impl(const diffv& v, diffv& acc) const {
-  mix_parameter(acc, v);
+void clsfer::mix_impl(const diffv& lhs, const diffv& rhs,
+                      diffv& mixed) const {
+  mix_parameter(lhs, rhs, mixed);
 }
 
 void clsfer::put_diff_impl(const diffv& v) {
-  diffv diff = v;
-  diff /= (double) v.count;
-  get_model()->set_average_and_clear_diff(diff.v);
+  get_model()->set_average_and_clear_diff(v.v);
 }
 
 void clsfer::clear() {

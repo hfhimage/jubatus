@@ -35,9 +35,12 @@ public:
     return get_model()->get_diff();
   }
 
-  void reduce_impl(const std::pair<double,size_t>& v, std::pair<double,size_t>& acc) const
+  void mix_impl(const std::pair<double, size_t>& lhs,
+                const std::pair<double, size_t>& rhs,
+                std::pair<double, size_t>& mixed) const
   {
-    jubatus::stat::mixable_stat::reduce(v, acc);
+    mixed = lhs;
+    jubatus::stat::mixable_stat::reduce(rhs, mixed);
   }
 
   void put_diff_impl(const std::pair<double,size_t>& v)

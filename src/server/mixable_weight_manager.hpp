@@ -32,9 +32,11 @@ struct mixable_weight_manager : public framework::mixable<weight_manager, keywor
   keyword_weights get_diff_impl() const {
     return get_model()->get_diff();
   };
-  void reduce_impl(const keyword_weights& lhs,
-                  keyword_weights& rhs) const {
-    rhs.merge(lhs);
+  void mix_impl(const keyword_weights& lhs,
+                const keyword_weights& rhs,
+                keyword_weights& mixed) const {
+    mixed = lhs;
+    mixed.merge(lhs);
   };
   void put_diff_impl(const keyword_weights& diff) {
     get_model()->put_diff(diff);

@@ -256,9 +256,9 @@ std::vector<std::string> jubatus_serv::mix_agg(const std::vector<std::string>& l
   }
   std::vector<std::string> ret;
   for(size_t i = 0; i < lhs.size(); ++i){
-    std::string tmp = lhs[i];
-    mixables_[i]->reduce(rhs[i], tmp);
-    ret.push_back(tmp);
+    std::string mixed;
+    mixables_[i]->mix(lhs[i], rhs[i], mixed);
+    ret.push_back(mixed);
   }
   return ret;
 }

@@ -33,7 +33,7 @@ public:
   virtual ~mixable0() {}
   virtual std::string get_diff() const = 0;
   virtual void put_diff(const std::string&) = 0;
-  virtual void reduce(const std::string&, std::string&) const = 0;
+  virtual void mix(const std::string&, const std::string&, std::string&) const = 0;
   virtual void save(std::ostream & ofs) = 0;
   virtual void load(std::istream & ifs) = 0;
   virtual void clear() = 0;
@@ -52,7 +52,7 @@ class mixable : public mixable0 {
 
   virtual Diff get_diff_impl() const = 0;
   virtual void put_diff_impl(const Diff&) = 0;
-  virtual void reduce_impl(const Diff&, Diff&) const = 0;
+  virtual void mix_impl(const Diff&, const Diff&, Diff&) const = 0;
 
   void set_model(model_ptr m){
     model_ = m;
@@ -78,12 +78,13 @@ class mixable : public mixable0 {
     }
   }
 
-  void reduce(const std::string& lhs, std::string& acc) const {
-    Diff l, a; //<- string
-    unpack_(lhs, l);
-    unpack_(acc, a);
-    reduce_impl(l, a);
-    pack_(a, acc);
+  void mix(const std::string& lhs, const std::string& rhs,
+           std::string& mixed_string) const {
+    Diff left, right, mixed;
+    unpack_(lhs, left);
+    unpack_(rhs, right);
+    mix_impl(left, right, mixed);
+    pack_(mixed, mixed_string);
   }
 
   void save(std::ostream & os){

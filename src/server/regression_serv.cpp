@@ -153,16 +153,16 @@ feature_val3_t mix_feature(const feature_val3_t& lhs, const feature_val3_t& rhs)
 
 }
 
-void gresser::reduce_impl(const diffv& v, diffv& acc) const {
-  features3_t r(v.v);
-  for (size_t i = 0; i < r.size(); ++i) {
-    feature_val3_t& f = r[i].second;
-    for (size_t j = 0; j < f.size(); ++j) {
-      f[j].second.v1 *= v.count;
-    }
-  }
-  storage::detail::binop(acc.v, r, mix_feature);
-  acc.count += v.count;
+void gresser::mix_impl(const diffv& lhs, const diffv& rhs,
+                       diffv& mixed) const {
+  features3_t l(lhs.v);
+  features3_t r(rhs.v);
+  storage::detail::mult_scalar(l, lhs.count);
+  storage::detail::mult_scalar(r, rhs.count);
+  storage::detail::binop(l, r, mix_feature);
+  storage::detail::mult_scalar(l, 1.0 / (lhs.count + rhs.count));
+  mixed.v.swap(l);
+  mixed.count = lhs.count + rhs.count;
 }
 
 diffv gresser::get_diff_impl() const {
@@ -173,9 +173,7 @@ diffv gresser::get_diff_impl() const {
 }
 
 void gresser::put_diff_impl(const diffv& v) {
-  diffv diff = v;
-  diff /= (double) v.count;
-  get_model()->set_average_and_clear_diff(diff.v);
+  get_model()->set_average_and_clear_diff(v.v);
 }
 
 void gresser::clear() {

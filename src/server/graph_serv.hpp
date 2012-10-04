@@ -40,10 +40,12 @@ struct mixable_graph : public framework::mixable<jubatus::graph::graph_base, std
     return diff;
   };
 
-  void reduce_impl(const std::string& v,
-                  std::string& acc) const
+  void mix_impl(const std::string& lhs,
+                const std::string& rhs,
+                std::string& mixed) const
   {
-    jubatus::graph::graph_wo_index::mix(v, acc);
+    mixed = lhs;
+    jubatus::graph::graph_wo_index::mix(rhs, mixed);
   };
 
   void put_diff_impl(const std::string& v)

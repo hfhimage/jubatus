@@ -36,8 +36,8 @@ class mixable_int : public mixable<int_model, int> {
     diff_ = 0;
   }
 
-  void reduce_impl(const int& diff, int& acc) const {
-    acc += diff;
+  void mix_impl(const int& lhs, const int& rhs, int& mixed) const {
+    mixed = lhs + rhs;
   }
   
   void add(int n) {
@@ -75,9 +75,10 @@ TEST(mixable, trivial) {
   string diff1 = m.get_diff();
   string diff2 = m.get_diff();
 
-  m.reduce(diff1, diff2);
+  std::string mixed;
+  m.mix(diff1, diff2, mixed);
 
-  m.put_diff(diff2);
+  m.put_diff(mixed);
 
   EXPECT_EQ(20, m.get_model()->value);
 }
