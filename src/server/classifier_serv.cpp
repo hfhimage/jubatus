@@ -46,8 +46,8 @@ namespace server {
 
 namespace {
 
-clsfer::model_ptr make_model(const framework::server_argv& arg) {
-  return clsfer::model_ptr(storage::storage_factory::create_storage((arg.is_standalone())?"local":"local_mixture"));
+linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
+  return linear_function_mixer::model_ptr(storage::storage_factory::create_storage((arg.is_standalone())?"local":"local_mixture"));
 }
 
 }
@@ -169,54 +169,6 @@ void classifier_serv::check_set_config()const
   if (!classifier_){
     throw JUBATUS_EXCEPTION(config_not_set());
   }
-}
-
-
-diffv clsfer::get_diff_impl() const {
-  diffv ret;
-  ret.count = 1; //FIXME mixer_->get_count();
-  get_model()->get_diff(ret.v);
-  return ret;
-}
-
-namespace {
-
-val3_t mix_val3(const val3_t& lhs, const val3_t& rhs) {
-  return val3_t(lhs.v1 + rhs.v1,
-                min(lhs.v2, rhs.v2),
-                lhs.v3 + rhs.v3);
-}
-
-feature_val3_t mix_feature(const feature_val3_t& lhs, const feature_val3_t& rhs) {
-  val3_t def(0, 1, 0);
-  feature_val3_t ret(lhs);
-  storage::detail::binop(ret, rhs, mix_val3, def);
-  return ret;
-}
-
-void mix_parameter(const diffv& lhs, const diffv& rhs, diffv& mixed) {
-  features3_t l(lhs.v);
-  features3_t r(rhs.v);
-  storage::detail::mult_scalar(l, lhs.count);
-  storage::detail::mult_scalar(r, rhs.count);
-  storage::detail::binop(l, r, mix_feature);
-  storage::detail::mult_scalar(l, 1.0 / (lhs.count + rhs.count));
-  mixed.v.swap(l);
-  mixed.count = lhs.count + rhs.count;
-}
-
-}
-
-void clsfer::mix_impl(const diffv& lhs, const diffv& rhs,
-                      diffv& mixed) const {
-  mix_parameter(lhs, rhs, mixed);
-}
-
-void clsfer::put_diff_impl(const diffv& v) {
-  get_model()->set_average_and_clear_diff(v.v);
-}
-
-void clsfer::clear() {
 }
 
 } // namespace server

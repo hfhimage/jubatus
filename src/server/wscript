@@ -5,8 +5,9 @@ def configure(conf):
   pass
 
 
-def build_one(bld, name, libraries = ''):
-  __sources = '%s_impl.cpp %s_serv.cpp' % (name, name)
+def build_one(bld, name, libraries = '', sources = ''):
+  __sources = '%s_impl.cpp %s_serv.cpp ' % (name, name)
+  __sources += sources
 
   bld.program(
     source = __sources,
@@ -31,12 +32,19 @@ def build_one(bld, name, libraries = ''):
 
 
 def build(bld):
+  bld.program(
+    features='gtest',
+    source=[ 'linear_function_mixer.cpp',
+             'linear_function_mixer_test.cpp' ],
+    target='linear_function_mixer_test',
+    use='PFICOMMON jubastorage'
+    )
 
   #new classifier
-  build_one(bld, "classifier", 'jubaconverter jubastorage')
+  build_one(bld, "classifier", 'jubaconverter jubastorage', 'linear_function_mixer.cpp')
 
   #new regression
-  build_one(bld, "regression", 'jubaconverter jubastorage')
+  build_one(bld, "regression", 'jubaconverter jubastorage', 'linear_function_mixer.cpp')
 
   #new recommender
   build_one(bld, "recommender", 'jubaconverter jubastorage')

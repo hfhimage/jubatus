@@ -30,22 +30,10 @@
 #include "../framework.hpp"
 #include "diffv.hpp"
 #include "mixable_weight_manager.hpp"
+#include "linear_function_mixer.hpp"
 
 namespace jubatus{
 namespace server{
-
-// mixable object: It would be better if classifier object itself inherits framework::mixable<>
-struct clsfer : public jubatus::framework::mixable<storage::storage_base, diffv>
-{
-  diffv get_diff_impl() const;
-
-  void mix_impl(const diffv& lhs, const diffv& rhs, diffv& mixed) const;
-
-  void put_diff_impl(const diffv& v);
-
-  void clear();
-
-};
 
 class classifier_serv : public framework::jubatus_serv
 {
@@ -68,7 +56,7 @@ private:
   config_data config_;
   pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter> converter_;
   pfi::lang::shared_ptr<classifier_base> classifier_;
-  clsfer clsfer_;
+  linear_function_mixer clsfer_;
   mixable_weight_manager wm_;
 };
 

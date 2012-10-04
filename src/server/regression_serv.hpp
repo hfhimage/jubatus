@@ -28,22 +28,10 @@
 #include "regression_types.hpp"
 #include "../framework.hpp"
 #include "diffv.hpp"
-
+#include "linear_function_mixer.hpp"
 
 namespace jubatus{
 namespace server{
-
-struct gresser : public jubatus::framework::mixable<storage::storage_base, diffv>
-{
-  diffv get_diff_impl() const;
-
-  void mix_impl(const diffv& lhs, const diffv& rhs, diffv& mixed) const;
-
-  void put_diff_impl(const diffv& v);
-
-  void clear();
-};
-  
 
 class regression_serv : public jubatus::framework::jubatus_serv
 {
@@ -66,7 +54,7 @@ private:
   config_data config_;
   pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter> converter_;
   pfi::lang::shared_ptr<regression_base> regression_;
-  gresser gresser_;
+  linear_function_mixer gresser_;
 };
 
 }
