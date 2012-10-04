@@ -42,8 +42,6 @@ struct gresser : public jubatus::framework::mixable<storage::storage_base, diffv
   void put_diff_impl(const diffv& v);
 
   void clear();
-
-  pfi::lang::shared_ptr<regression_base> regression_;
 };
   
 
@@ -67,6 +65,7 @@ public:
 private:
   config_data config_;
   pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter> converter_;
+  pfi::lang::shared_ptr<regression_base> regression_;
   gresser gresser_;
 };
 

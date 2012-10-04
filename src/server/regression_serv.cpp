@@ -64,7 +64,7 @@ int regression_serv::set_config(config_data config) {
   config_ = config;
   converter_ = converter;
 
-  gresser_.regression_.reset(regression_factory().create_regression(config_.method, gresser_.get_model().get()));
+  regression_.reset(regression_factory().create_regression(config_.method, gresser_.get_model().get()));
 
   // FIXME: switch the function when set_config is done
   // because mixing method differs btwn PA, CW, etc...
@@ -87,7 +87,7 @@ int regression_serv::train(std::vector<std::pair<float, jubatus::datum> > data) 
   for (size_t i = 0; i < data.size(); ++i) {
     convert<jubatus::datum, fv_converter::datum>(data[i].second, d);
     converter_->convert(d, v);
-    gresser_.regression_->train(v, data[i].first);
+    regression_->train(v, data[i].first);
     count++;
   }
   // FIXME: send count incrementation to mixer
@@ -103,7 +103,7 @@ std::vector<float > regression_serv::estimate(std::vector<jubatus::datum> data) 
   for (size_t i = 0; i < data.size(); ++i) {
     convert<datum, fv_converter::datum>(data[i], d);
     converter_->convert(d, v);
-    ret.push_back(gresser_.regression_->estimate(v));
+    ret.push_back(regression_->estimate(v));
   }
   return ret; //std::vector<estimate_results> >::ok(ret);
 }
@@ -131,7 +131,7 @@ std::map<std::string, std::map<std::string,std::string> > regression_serv::get_s
 
 void regression_serv::check_set_config()const
 {
-  if(!gresser_.regression_){
+  if(!regression_){
     throw JUBATUS_EXCEPTION(config_not_set());
   }
 }
