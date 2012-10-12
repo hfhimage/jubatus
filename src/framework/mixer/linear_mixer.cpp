@@ -90,6 +90,12 @@ void linear_mixer::updated() {
   return counter_;
 }
 
+void linear_mixer::get_status(server_bases::status_t& status) const {
+  scoped_lock lk(rlock(m_));
+  status["linear_mixer.count"] = pfi::lang::lexical_cast<string>(counter_);
+  status["linear_mixer.ticktime"] = pfi::lang::lexical_cast<string>(ticktime_); //since last mix
+}
+
 void linear_mixer::mixer_loop() {
   while (is_running_) {
     string path;

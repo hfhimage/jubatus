@@ -45,6 +45,8 @@ public:
 
   void updated();
 
+  void get_status(server_base::status_t& status) const;
+
 private:
   void mixer_loop();
   void mix();

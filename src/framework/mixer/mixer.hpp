@@ -18,6 +18,7 @@
 #pragma once
 
 #include <pficommon/network/mprpc.h>
+#include "../server_base.hpp"
 
 namespace jubatus {
 namespace framework {
@@ -37,6 +38,9 @@ public:
   virtual void stop() = 0;
 
   virtual void updated() = 0;
+
+  virtual void get_status(server_base::status_t& status) const = 0;
+  virtual std::vector<pfi::lang::shared_ptr<mixable0> > get_mixables() const = 0;
 };
 
 }
