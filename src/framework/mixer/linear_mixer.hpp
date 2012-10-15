@@ -46,6 +46,7 @@ public:
   void updated();
 
   void get_status(server_base::status_t& status) const;
+  std::vector<pfi::lang::shared_ptr<mixable0> > get_mixables() const;
 
 private:
   void mixer_loop();

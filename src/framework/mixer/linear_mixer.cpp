@@ -96,6 +96,10 @@ void linear_mixer::get_status(server_bases::status_t& status) const {
   status["linear_mixer.ticktime"] = pfi::lang::lexical_cast<string>(ticktime_); //since last mix
 }
 
+vector<pfi::lang::shared_ptr<mixable0> > linear_mixer::get_mixables() const {
+  return mixables_;
+}
+
 void linear_mixer::mixer_loop() {
   while (is_running_) {
     string path;
