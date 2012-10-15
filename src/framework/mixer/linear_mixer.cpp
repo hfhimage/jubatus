@@ -34,7 +34,7 @@ namespace jubatus {
 namespace framework {
 namespace mixer {
 
-linear_mixer::linear_mixer(common::cshared_ptr<common::lock_service>& zk,
+linear_mixer::linear_mixer(const common::cshared_ptr<common::lock_service>& zk,
                            const string& type, const string& name,
                            int timeout_sec,
                            unsigned int count_threshold, unsigned int tick_threshold)
