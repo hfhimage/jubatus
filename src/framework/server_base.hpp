@@ -47,7 +47,7 @@ public:
   void event_model_updated();
 
 protected:
-  virtual std::vector<pfi::lang::shared_ptr<mixable0> > get_mixables() const = 0;
+  virtual std::vector<mixable0*> get_mixables() const = 0;
 
   uint64_t update_count() const {
     return update_count_;

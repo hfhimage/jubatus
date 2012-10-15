@@ -32,7 +32,7 @@ public:
   virtual ~mixer() {}
 
   virtual void register_api(pfi::network::mprpc::rpc_server& server) = 0;
-  virtual void register_mixable(const pfi::lang::shared_ptr<mixable0>& m) = 0;
+  virtual void register_mixable(mixable0* m) = 0;
 
   virtual void start() = 0;
   virtual void stop() = 0;
@@ -40,7 +40,7 @@ public:
   virtual void updated() = 0;
 
   virtual void get_status(server_base::status_t& status) const = 0;
-  virtual std::vector<pfi::lang::shared_ptr<mixable0> > get_mixables() const = 0;
+  virtual std::vector<mixable0*> get_mixables() const = 0;
 };
 
 }

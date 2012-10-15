@@ -59,7 +59,7 @@ void linear_mixer::register_api(pfi::network::mprpc::rpc_server& server) {
        pfi::lang::bind(&linear_mixer::put_diff, this, pfi::lang::_1));
 }
 
-void linear_mixer::register_mixable(const pfi::lang::shared_ptr<mixable0>& m) {
+void linear_mixer::register_mixable(mixable0* m) {
   mixables_.push_back(m);
 }
 
@@ -96,7 +96,7 @@ void linear_mixer::get_status(server_bases::status_t& status) const {
   status["linear_mixer.ticktime"] = pfi::lang::lexical_cast<string>(ticktime_); //since last mix
 }
 
-vector<pfi::lang::shared_ptr<mixable0> > linear_mixer::get_mixables() const {
+vector<mixable0*> linear_mixer::get_mixables() const {
   return mixables_;
 }
 

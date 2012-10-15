@@ -38,7 +38,7 @@ public:
                unsigned int count_threshold, unsigned int tick_threshold);
 
   void register_api(pfi::network::mprpc::rpc_server& server);
-  void register_mixable(const pfi::lang::shared_ptr<mixable0>& m);
+  void register_mixable(mixable0* m);
 
   void start();
   void stop();
@@ -46,7 +46,7 @@ public:
   void updated();
 
   void get_status(server_base::status_t& status) const;
-  std::vector<pfi::lang::shared_ptr<mixable0> > get_mixables() const;
+  std::vector<mixable0*> get_mixables() const;
 
 private:
   void mixer_loop();
@@ -74,7 +74,7 @@ private:
   pfi::concurrent::rw_mutex m_;
   pfi::concurrent::condition c_;
 
-  std::vector<pfi::lang::shared_ptr<mixable0> > mixables_;
+  std::vector<mixable0*> mixables_;
 };
 
 }
