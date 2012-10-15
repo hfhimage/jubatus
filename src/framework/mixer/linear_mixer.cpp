@@ -133,9 +133,9 @@ void linear_mixer::mix() {
 
   vector<pair<string,int> > servers;
   common::get_all_actors(*zk_, type_, name_, servers);
-  vector<string> accs;
   //vector<string> serialized_diffs;
   clock_time start = get_clock_time();
+  size_t s = 0;
 
   if (servers.empty()) {
     LOG(WARNING) << "no other server. ";
@@ -155,6 +155,10 @@ void linear_mixer::mix() {
 
       c.call("put_diff", mixed);
       // TODO: output log when result has error
+
+      for (size_t i = 0; i < mixed.size(); ++i) {
+        s += mixed[i].size();
+      }
     } catch (const std::exception& e) {
       LOG(WARNING) << e.what() << " : mix failed";
       return;
@@ -162,10 +166,6 @@ void linear_mixer::mix() {
   }
 
   clock_time end = get_clock_time();
-  size_t s = 0;
-  for (size_t i = 0; i < accs.size(); ++i) {
-    s += accs[i].size();
-  }
   DLOG(INFO) << "mixed with " << servers.size() << " servers in " << (double)(end - start) << " secs, "
              << s << " bytes (serialized data) has been put.";
   mix_count_++;
