@@ -19,6 +19,8 @@
 
 #include "../stat/mixable_stat.hpp"
 #include "../framework.hpp"
+#include "../framework/mixer/mixer.hpp"
+#include "../framework/server_base.hpp"
 #include "stat_types.hpp"
 
 namespace jubatus {
@@ -46,12 +48,14 @@ public:
 
 };
 
-class stat_serv : public framework::jubatus_serv {
+class stat_serv : public framework::server_base {
 public:
-  stat_serv(const framework::server_argv&);
+  stat_serv(const framework::server_argv&,
+            const common::cshared_ptr<common::lock_service>& zk);
   virtual ~stat_serv();
 
-  void after_load();
+  framework::mixer::mixer* get_mixer() const;
+  void get_status(status_t& status) const;
 
   bool set_config(const config_data&);
   config_data get_config()const;
@@ -63,7 +67,14 @@ public:
   double entropy(const std::string&) const;
   double moment(const std::string&, int, double) const;
 
+protected:
+  std::vector<framework::mixable0*> get_mixables();
+  const framework::server_argv& get_argv() const;
+
 private:
+  pfi::lang::scoped_ptr<framework::mixer::mixer> mixer_;
+  const framework::server_argv a_;
+
   jubatus::config_data config_;
   server::mixable_stat stat_;
 };

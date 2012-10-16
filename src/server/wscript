@@ -49,7 +49,7 @@ def build(bld):
   # #new recommender
   # build_one(bld, "recommender", 'jubaconverter jubastorage')
 
-  # build_one(bld, "stat")
+  build_one(bld, "stat")
 
   # build_one(bld, "graph")
 

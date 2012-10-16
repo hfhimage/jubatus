@@ -16,27 +16,41 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "stat_serv.hpp"
+
 #include "../common/shared_ptr.hpp"
+#include "../framework/mixer/linear_mixer.hpp"
+
+using namespace std;
+using namespace jubatus::common;
+using namespace jubatus::framework;
 
 namespace jubatus {
 namespace server {
 
-stat_serv::stat_serv(const framework::server_argv& a)
-  :jubatus_serv(a)
-{
+stat_serv::stat_serv(const server_argv& a,
+                     const cshared_ptr<lock_service>& zk)
+    : mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+                                     a.interval_count, a.interval_sec)),
+      a_(a) {
   config_.window_size = 1024; // default till users call set_config
   common::cshared_ptr<stat::mixable_stat> model(new stat::mixable_stat(config_.window_size));
   stat_.set_model(model);
-  register_mixable(&stat_);
+  mixer_->register_mixable(&stat_);
 }
 
 stat_serv::~stat_serv() {
 }
 
-// after load(..) called, users reset their own data
-void stat_serv::after_load(){
-  //  stat_.reset();
-};
+mixer::mixer* stat_serv::get_mixer() const {
+  return mixer_.get();
+}
+
+void stat_serv::get_status(status_t& status) const {
+  map<string, string> my_status;
+  my_status["storage"] = stat_.get_model()->type();
+
+  status[get_server_identifier(a_)].insert(my_status.begin(), my_status.end());
+}
 
 bool stat_serv::set_config(const config_data& config){
   config_ = config;
@@ -75,6 +89,15 @@ double stat_serv::moment(const std::string& key, int n,double c) const{
   return stat_.get_model()->moment(key, n, c);
 }
 
+vector<mixable0*> stat_serv::get_mixables() {
+  vector<mixable0*> mixables;
+  mixables.push_back(&stat_);
+  return mixables;
+}
+
+const server_argv& stat_serv::get_argv() const {
+  return a_;
+}
 
 } // namespace server
 } // namespace jubatus
