@@ -169,10 +169,10 @@ void linear_mixer::mixer_loop() {
             counter_ = 0;
             ticktime_ = new_ticktime;
           } else {
-            return;
+            continue;
           }
         } else {
-          return;
+          continue;
         }
 
       } //unlock
