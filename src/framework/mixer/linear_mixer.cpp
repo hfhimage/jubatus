@@ -153,7 +153,7 @@ void linear_mixer::mix() {
       for (size_t i = 1; i < result.response.size(); ++i) {
         vector<string> tmp = result.response[i].as<vector<string> >();
         for (size_t j = 0; j < tmp.size(); ++j) {
-          mixables_[i]->reduce(tmp[j], mixed[j]);
+          mixables_[i]->mix(tmp[j], mixed[j], mixed[j]);
         }
       }
 
