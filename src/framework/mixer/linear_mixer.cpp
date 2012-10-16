@@ -120,8 +120,8 @@ void linear_mixer::register_mixable(mixable0* m) {
 void linear_mixer::start() {
   scoped_lock lk(m_);
   if (!is_running_) {
-    t_.start();
     is_running_ = true;
+    t_.start();
   }
 }
 
