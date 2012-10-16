@@ -43,8 +43,8 @@ public:
   virtual mixer::mixer* get_mixer() const = 0;
   virtual void get_status(status_t& status) const = 0;
 
-  virtual void save(const std::string& id);
-  virtual void load(const std::string& id);
+  virtual bool save(const std::string& id);
+  virtual bool load(const std::string& id);
   void event_model_updated();
 
   uint64_t update_count() const {

@@ -42,7 +42,7 @@ std::string build_local_path(const server_argv& a,
 server_base::server_base()
     : update_count_(0) {}
 
-void server_base::save(const std::string& id) {
+bool server_base::save(const std::string& id) {
   const std::string path = build_local_path(get_argv(), "jubatus", id);
   std::ofstream ofs(path.c_str(), std::ios::trunc|std::ios::binary);
   if (!ofs) {
@@ -60,9 +60,10 @@ void server_base::save(const std::string& id) {
     LOG(ERROR) << e.what();
     throw;
   }
+  return true;
 }
 
-void server_base::load(const std::string& id) {
+bool server_base::load(const std::string& id) {
   const std::string path = build_local_path(get_argv(), "jubatus", id);
   std::ifstream ifs(path.c_str(), std::ios::binary);
   if (!ifs) {
@@ -81,6 +82,7 @@ void server_base::load(const std::string& id) {
     LOG(ERROR) << e.what();
     throw;
   }
+  return true;
 }
 
 void server_base::event_model_updated() {
