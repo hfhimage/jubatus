@@ -1,0 +1,15 @@
+def options(opt):
+  pass
+
+def configure(conf):
+  pass
+
+def build(bld):
+  bld.shlib(target = 'jubamixer',
+            source = 'linear_mixer.cpp',
+            use = 'PFICOMMON jubacommon MSGPACK LIBGLOG jubacommon_mprpc')
+
+  bld.install_files('${PREFIX}/include/jubatus/framework/mixer', [
+      'mixer.hpp',
+      'linear_mixer.hpp'
+      ])

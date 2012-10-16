@@ -1,12 +1,15 @@
+subdirs = 'mixer'
+
 def options(opt):
-  pass
+  opt.recurse(subdirs)
 
 def configure(conf):
-  pass
+  conf.recurse(subdirs)
 
 def build(bld):
+  bld.recurse(subdirs)
 
-  framework_source = 'server_util.cpp jubatus_serv.cpp'
+  framework_source = 'server_util.cpp server_base.cpp jubatus_serv.cpp'
   if bld.env.HAVE_ZOOKEEPER_H:
     framework_source +=  ' keeper.cpp mixer.cpp'
 
@@ -14,7 +17,7 @@ def build(bld):
     source = framework_source,
     target = 'jubatus_framework',
     includes = '.',
-    use = 'PFICOMMON jubacommon MSGPACK LIBGLOG jubacommon_mprpc jubaconverter'
+    use = 'PFICOMMON jubacommon MSGPACK LIBGLOG jubacommon_mprpc jubaconverter jubamixer'
     )
 
   def make_test(t):
@@ -36,6 +39,8 @@ def build(bld):
   bld.install_files('${PREFIX}/include/jubatus/framework', [
       'jubatus_serv.hpp',
       'keeper.hpp',
+      'server_base.hpp',
+      'server_helper.hpp',
       'server_util.hpp',
       'mixable.hpp',
       'mixer.hpp',
