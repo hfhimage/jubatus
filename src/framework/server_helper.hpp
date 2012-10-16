@@ -22,7 +22,7 @@
 #include <map>
 #include <string>
 #include <glog/logging.h>
-#include <pficommon/lang/shared_ptr.h>
+#include <pficommon/concurrent/rwmutex.h>
 #include <pficommon/network/mprpc.h>
 #include <pficommon/system/sysstat.h>
 #include "../common/shared_ptr.hpp"
@@ -125,8 +125,12 @@ public:
     }
   }
 
-  pfi::lang::shared_ptr<Server> server() const {
+  common::cshared_ptr<Server> server() const {
     return server_;
+  }
+
+  pfi::concurrent::rw_mutex& rw_mutex() {
+    return rw_mutex_;
   }
 
 private:
@@ -143,9 +147,19 @@ private:
                                       
   const server_argv a_;
   common::cshared_ptr<jubatus::common::lock_service> zk_;
-  pfi::lang::shared_ptr<Server> server_;
+  pfi::concurrent::rw_mutex rw_mutex_;
+  common::cshared_ptr<Server> server_;
   bool use_cht_;
 };
 
 }
 }
+
+#define JRLOCK__(p) \
+  ::pfi::concurrent::scoped_lock lk(::pfi::concurrent::rlock((p)->rw_mutex()))
+
+#define JWLOCK__(p) \
+  ::pfi::concurrent::scoped_lock lk(::pfi::concurrent::wlock((p)->rw_mutex())); \
+  (p)->server()->event_model_updated()
+
+#define NOLOCK__(p)
