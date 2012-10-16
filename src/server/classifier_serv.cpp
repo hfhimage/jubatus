@@ -17,29 +17,19 @@
 
 #include "classifier_serv.hpp"
 
-#include "../storage/storage_factory.hpp"
 #include "../classifier/classifier_factory.hpp"
-#include "../fv_converter/datum.hpp"
-
-#include "../common/rpc_util.hpp"
-#include "../common/exception.hpp"
 #include "../common/util.hpp"
 #include "../common/vector_util.hpp"
-#include "../common/shared_ptr.hpp"
+#include "../framework/mixer/linear_mixer.hpp"
+#include "../fv_converter/datum.hpp"
+#include "../fv_converter/datum_to_fv_converter.hpp"
+#include "../storage/storage_factory.hpp"
 
-#include <glog/logging.h>
-
-#include <cmath> //for isfinite()
-
-#include "diffv.hpp"
-
-using namespace jubatus::storage;
-using namespace pfi::lang;
-using pfi::concurrent::scoped_lock;
 using namespace std;
-
-using jubatus::fv_converter::datum_to_fv_converter;
-using jubatus::framework::convert;
+using pfi::lang::shared_ptr;
+using namespace jubatus::common;
+using namespace jubatus::framework;
+using namespace jubatus::fv_converter;
 
 namespace jubatus {
 namespace server {
@@ -52,21 +42,30 @@ linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
 
 }
 
-classifier_serv::classifier_serv(const framework::server_argv& a)
-  :framework::jubatus_serv(a)
-{
+classifier_serv::classifier_serv(const framework::server_argv& a,
+                                 const cshared_ptr<lock_service>& zk)
+    : mixer_(new mixer::linear_mixer(zk, a.type, a.name, a.timeout,
+                                     a.interval_count, a.interval_sec)),
+      a_(a) {
   clsfer_.set_model(make_model(a));
-  register_mixable(&clsfer_);
+  mixer_->register_mixable(&clsfer_);
 
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
-
-  register_mixable(&wm_);
+  mixer_->register_mixable(&wm_);
 }
 
 classifier_serv::~classifier_serv() {
 }
 
-int classifier_serv::set_config(config_data config) {
+void classifier_serv::get_status(status_t& status) const {
+  map<string, string> my_status;
+  clsfer_.get_model()->get_status(my_status);
+  my_status["storage"] = clsfer_.get_model()->type();
+
+  status[get_server_identifier(a_)].insert(my_status.begin(), my_status.end());
+}
+
+int classifier_serv::set_config(const config_data& config) {
   DLOG(INFO) << __func__;
 
   shared_ptr<datum_to_fv_converter> converter
@@ -90,8 +89,7 @@ config_data classifier_serv::get_config() {
   return config_;
 }
 
-int classifier_serv::train(std::vector<std::pair<std::string, jubatus::datum> > data) {
-
+int classifier_serv::train(const vector<pair<string, jubatus::datum> >& data) {
   check_set_config();
 
   int count = 0;
@@ -113,15 +111,15 @@ int classifier_serv::train(std::vector<std::pair<std::string, jubatus::datum> > 
   return count;
 }
 
-std::vector<std::vector<estimate_result> > classifier_serv::classify(std::vector<jubatus::datum> data) const {
-  std::vector<std::vector<estimate_result> > ret;
+vector<vector<estimate_result> >
+classifier_serv::classify(const vector<jubatus::datum>& data) const {
+  vector<vector<estimate_result> > ret;
 
   check_set_config();
 
   sfv_t v;
   fv_converter::datum d;
   for (size_t i = 0; i < data.size(); ++i) {
-
     convert<datum, fv_converter::datum>(data[i], d);
     converter_->convert(d, v);
     
@@ -143,27 +141,9 @@ std::vector<std::vector<estimate_result> > classifier_serv::classify(std::vector
     }
     ret.push_back(r);
   }
-  return ret; //std::vector<estimate_results> >::ok(ret);
+  return ret; //vector<estimate_results> >::ok(ret);
 }
 
-// after load(..) called, users reset their own data
-void classifier_serv::after_load(){
-  //  classifier_.reset(classifier_factory::create_classifier(config_.method, model_.get()));
-}
-
-std::map<std::string, std::map<std::string,std::string> > classifier_serv::get_status(){
-  std::map<std::string,std::string> ret0;
-
-  clsfer_.get_model()->get_status(ret0);
-  ret0["storage"] = clsfer_.get_model()->type();
-
-  std::map<std::string, std::map<std::string,std::string> > ret =
-    jubatus_serv::get_status();
-
-  ret[get_server_identifier()].insert(ret0.begin(), ret0.end());
-  return ret;
-}
-  
 void classifier_serv::check_set_config()const
 {
   if (!classifier_){
