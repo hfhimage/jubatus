@@ -1,11 +1,15 @@
 import Options
 
+# subdirs = '''
+# common plugin stat
+# classifier fv_converter recommender regression storage
+# framework server
+# cmd jubavisor
+# graph
+# '''
 subdirs = '''
-common plugin stat
-classifier fv_converter recommender regression storage
-framework server
-cmd jubavisor
-graph
+common plugin fv_converter classifier storage
+framework server cmd jubavisor
 '''
 
 def options(opt):
