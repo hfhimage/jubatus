@@ -40,7 +40,7 @@ public:
   virtual ~server_base() {}
 
   virtual mixer::mixer* get_mixer() const = 0;
-  virtual status_t get_status() const = 0;
+  virtual void get_status(status_t& status) const = 0;
 
   virtual void save(const std::string& path, const std::string& id);
   virtual void load(const std::string& path, const std::string& id);
