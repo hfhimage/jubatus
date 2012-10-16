@@ -39,6 +39,7 @@ public:
   linear_communication_impl(common::cshared_ptr<common::lock_service>& zk,
                             const std::string& type, const std::string& name, int timeout_sec);
 
+  size_t update_members();
   pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock();
   void get_diff(vector<common::mprpc::rpc_result_object>&) const;
   void put_diff(const vector<string>&) const;
