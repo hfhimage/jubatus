@@ -17,45 +17,55 @@
 
 #pragma once
 
-#include <string>
 #include <vector>
-
-#include "../common/rpc_util.hpp"
-#include "../regression/regression_base.hpp"
-#include "../fv_converter/datum_to_fv_converter.hpp"
-#include "../storage/storage_base.hpp"
+#include <pficommon/lang/scoped_ptr.h>
+#include <pficommon/lang/shared_ptr.h>
 #include "../common/shared_ptr.hpp"
+#include "../framework/mixable.hpp"
+#include "../framework/mixer/mixer.hpp"
+#include "../framework/server_base.hpp"
+#include "../regression/regression_base.hpp"
 #include "regression_types.hpp"
-#include "../framework.hpp"
 #include "diffv.hpp"
 #include "linear_function_mixer.hpp"
+#include "mixable_weight_manager.hpp"
 
-namespace jubatus{
-namespace server{
+namespace jubatus {
+namespace server {
 
-class regression_serv : public jubatus::framework::jubatus_serv
-{
+class regression_serv : public framework::server_base {
 public:
-  regression_serv(const framework::server_argv&);
+  regression_serv(const framework::server_argv& a,
+                  const common::cshared_ptr<common::lock_service>& zk);
   virtual ~regression_serv();
 
-  int set_config(config_data);
+  framework::mixer::mixer* get_mixer() const {
+    return mixer_.get();
+  }
+
+  void get_status(status_t& status) const;
+
+  int set_config(const config_data& config);
   config_data get_config();
-  int train(std::vector<std::pair<float, datum> > data);
-  std::vector<float> estimate(std::vector<datum> data);
+  int train(const std::vector<std::pair<float, datum> >& data);
+  std::vector<float> estimate(const std::vector<datum>& data) const;
 
-  common::cshared_ptr<storage::storage_base> make_model();
-  void after_load();
+  void check_set_config() const;
 
-  std::map<std::string, std::map<std::string, std::string> > get_status();
-  void check_set_config()const;
+protected:
+  std::vector<framework::mixable0*> get_mixables();
+  const framework::server_argv& get_argv() const;
 
 private:
+  pfi::lang::scoped_ptr<framework::mixer::mixer> mixer_;
+  const framework::server_argv a_;
+
   config_data config_;
   pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter> converter_;
   pfi::lang::shared_ptr<regression_base> regression_;
   linear_function_mixer gresser_;
+  mixable_weight_manager wm_;
 };
 
 }
-} // namespace jubatus
+}

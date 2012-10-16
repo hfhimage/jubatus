@@ -8,8 +8,10 @@ import Options
 # graph
 # '''
 subdirs = '''
-common plugin fv_converter classifier storage
-framework server cmd jubavisor
+common plugin
+classifier fv_converter regression storage
+framework server
+cmd jubavisor
 '''
 
 def options(opt):

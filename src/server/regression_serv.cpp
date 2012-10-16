@@ -16,46 +16,56 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "regression_serv.hpp"
-#include "../storage/storage_factory.hpp"
-#include "../storage/local_storage_mixture.hpp"
+
 #include "../regression/regression_factory.hpp"
-#include "../fv_converter/datum.hpp"
-
-#include "../common/rpc_util.hpp"
-#include "../common/exception.hpp"
 #include "../common/util.hpp"
+#include "../common/vector_util.hpp"
+#include "../framework/mixer/linear_mixer.hpp"
+#include "../fv_converter/datum.hpp"
+#include "../fv_converter/datum_to_fv_converter.hpp"
+#include "../storage/storage_factory.hpp"
 
-#include <pficommon/lang/bind.h>
-#include <pficommon/lang/function.h>
-
-#include <glog/logging.h>
-
-#include <cmath> //for isfinite()
-
-#include "diffv.hpp"
-
-using namespace jubatus::storage;
-using namespace pfi::lang;
-using pfi::concurrent::scoped_lock;
 using namespace std;
-
-using jubatus::fv_converter::datum_to_fv_converter;
-using jubatus::framework::convert;
+using pfi::lang::shared_ptr;
+using namespace jubatus::common;
+using namespace jubatus::framework;
+using namespace jubatus::fv_converter;
 
 namespace jubatus {
 namespace server {
 
-regression_serv::regression_serv(const framework::server_argv & a)
-  :jubatus_serv(a)
-{
-  gresser_.set_model(make_model());
-  register_mixable(&gresser_);
+namespace {
+
+linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
+  return linear_function_mixer::model_ptr(storage::storage_factory::create_storage((arg.is_standalone())?"local":"local_mixture"));
+}
+
+}
+
+regression_serv::regression_serv(const framework::server_argv& a,
+                                 const cshared_ptr<lock_service>& zk)
+    : mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+                                     a.interval_count, a.interval_sec)),
+      a_(a) {
+  gresser_.set_model(make_model(a));
+  mixer_->register_mixable(&gresser_);
+
+  wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
+  mixer_->register_mixable(&wm_);
 }
 
 regression_serv::~regression_serv() {
 }
 
-int regression_serv::set_config(config_data config) {
+void regression_serv::get_status(status_t& status) const {
+  map<string, string> my_status;
+  gresser_.get_model()->get_status(my_status);
+  my_status["storage"] = gresser_.get_model()->type();
+
+  status[get_server_identifier(a_)].insert(my_status.begin(), my_status.end());
+}
+
+int regression_serv::set_config(const config_data& config) {
   DLOG(INFO) << __func__;
 
   shared_ptr<datum_to_fv_converter> converter
@@ -64,7 +74,9 @@ int regression_serv::set_config(config_data config) {
   config_ = config;
   converter_ = converter;
 
-  regression_.reset(regression_factory().create_regression(config_.method, gresser_.get_model().get()));
+  wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
+  
+  regression_.reset(regression_factory().create_regression(config.method, gresser_.get_model().get()));
 
   // FIXME: switch the function when set_config is done
   // because mixing method differs btwn PA, CW, etc...
@@ -72,12 +84,12 @@ int regression_serv::set_config(config_data config) {
 }
 
 config_data regression_serv::get_config() {
+  DLOG(INFO) << __func__;
   check_set_config();
   return config_;
 }
 
-int regression_serv::train(std::vector<std::pair<float, jubatus::datum> > data) {
-
+int regression_serv::train(const vector<pair<float, jubatus::datum> >& data) {
   check_set_config();
 
   int count = 0;
@@ -94,10 +106,10 @@ int regression_serv::train(std::vector<std::pair<float, jubatus::datum> > data) 
   return count;
 }
 
-std::vector<float > regression_serv::estimate(std::vector<jubatus::datum> data) {
+vector<float> regression_serv::estimate(const vector<jubatus::datum>& data) const {
   check_set_config();
 
-  std::vector<float> ret;
+  vector<float> ret;
   sfv_t v;
   fv_converter::datum d;
   for (size_t i = 0; i < data.size(); ++i) {
@@ -105,35 +117,25 @@ std::vector<float > regression_serv::estimate(std::vector<jubatus::datum> data) 
     converter_->convert(d, v);
     ret.push_back(regression_->estimate(v));
   }
-  return ret; //std::vector<estimate_results> >::ok(ret);
-}
-
-common::cshared_ptr<storage::storage_base> regression_serv::make_model(){
-  return common::cshared_ptr<storage::storage_base>(storage::storage_factory::create_storage((a_.is_standalone())?"local":"local_mixture"));
-}
-// after load(..) called, users reset their own data
-void regression_serv::after_load(){
-  //  regression_.reset(regression_factory().create_regression(config_.method, model_.get()));
-};
-
-std::map<std::string, std::map<std::string,std::string> > regression_serv::get_status(){
-  std::map<std::string,std::string> ret0;
-
-  gresser_.get_model()->get_status(ret0); //FIXME
-  ret0["storage"] = gresser_.get_model()->type();
-
-  std::map<std::string, std::map<std::string,std::string> > ret =
-    jubatus_serv::get_status();
-
-  ret[get_server_identifier()].insert(ret0.begin(), ret0.end());
-  return ret;
+  return ret; //vector<estimate_results> >::ok(ret);
 }
 
 void regression_serv::check_set_config()const
 {
-  if(!regression_){
+  if (!regression_){
     throw JUBATUS_EXCEPTION(config_not_set());
   }
+}
+
+vector<mixable0*> regression_serv::get_mixables() {
+  vector<mixable0*> mixables;
+  mixables.push_back(&gresser_);
+  mixables.push_back(&wm_);
+  return mixables;
+}
+
+const server_argv& regression_serv::get_argv() const {
+  return a_;
 }
 
 } // namespace server
