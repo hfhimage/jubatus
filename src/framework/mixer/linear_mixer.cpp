@@ -87,7 +87,6 @@ void linear_mixer::updated() {
      new_ticktime - ticktime_ > tick_threshold_){
     c_.notify(); // FIXME: need sync here?
   }
-  return counter_;
 }
 
 void linear_mixer::get_status(server_bases::status_t& status) const {
