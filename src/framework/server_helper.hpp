@@ -76,13 +76,14 @@ public:
 
     data["update_count"] = pfi::lang::lexical_cast<std::string>(server_->update_count());
 
+    status_t status;
+
 #ifdef HAVE_ZOOKEEPER_H
-    server_->get_mixer()->get_status(data);
+    server_->get_mixer()->get_status(status);
     data["zk"] = a_.z;
     data["use_cht"] = pfi::lang::lexical_cast<std::string>(use_cht_);
 #endif
   
-    status_t status;
     status[get_server_identifier(a_)].swap(data);
     server_->get_status(status);
 
