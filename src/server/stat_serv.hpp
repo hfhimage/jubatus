@@ -21,37 +21,32 @@
 #include "../framework.hpp"
 #include "stat_types.hpp"
 
-namespace jubatus{
-namespace server{
+namespace jubatus {
+namespace server {
 
 struct mixable_stat : public framework::mixable<jubatus::stat::mixable_stat,
-                                                std::pair<double,size_t> >
-{
+                                                std::pair<double,size_t> > {
 public:
-  void clear(){}
+  void clear() {}
 
-  std::pair<double,size_t> get_diff_impl() const
-  {
+  std::pair<double,size_t> get_diff_impl() const {
     return get_model()->get_diff();
   }
 
   void mix_impl(const std::pair<double, size_t>& lhs,
                 const std::pair<double, size_t>& rhs,
-                std::pair<double, size_t>& mixed) const
-  {
+                std::pair<double, size_t>& mixed) const {
     mixed = lhs;
     jubatus::stat::mixable_stat::reduce(rhs, mixed);
   }
 
-  void put_diff_impl(const std::pair<double,size_t>& v)
-  {
+  void put_diff_impl(const std::pair<double,size_t>& v) {
     get_model()->put_diff(v);
   }
 
 };
 
-class stat_serv : public framework::jubatus_serv
-{
+class stat_serv : public framework::jubatus_serv {
 public:
   stat_serv(const framework::server_argv&);
   virtual ~stat_serv();
@@ -61,11 +56,11 @@ public:
   bool set_config(const config_data&);
   config_data get_config()const;
   int push(const std::string& key, double value);
-  double sum(const std::string&) const ;
-  double stddev(const std::string&) const ;
-  double max(const std::string&) const ;
-  double min(const std::string&) const ;
-  double entropy(const std::string&) const ;
+  double sum(const std::string&) const;
+  double stddev(const std::string&) const;
+  double max(const std::string&) const;
+  double min(const std::string&) const;
+  double entropy(const std::string&) const;
   double moment(const std::string&, int, double) const;
 
 private:
