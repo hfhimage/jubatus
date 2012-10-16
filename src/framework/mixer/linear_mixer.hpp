@@ -71,9 +71,8 @@ private:
   volatile bool is_running_;
 
   pfi::concurrent::thread t_;
-  pfi::concurrent::rw_mutex m_;
+  mutable pfi::concurrent::rw_mutex m_;
   pfi::concurrent::condition c_;
-
   std::vector<mixable0*> mixables_;
 };
 
