@@ -19,7 +19,6 @@
 
 #include <glog/logging.h>
 #include <pficommon/concurrent/lock.h>
-#include <pficommon/concurrent/rwmutex.h>
 #include <pficommon/lang/bind.h>
 #include <pficommon/system/time_util.h>
 #include "../../common/exception.hpp"
@@ -64,7 +63,7 @@ void linear_mixer::register_mixable(mixable0* m) {
 }
 
 void linear_mixer::start() {
-  scoped_lock lk(wlock(m_));
+  scoped_lock lk(m_);
   if (!is_running_) {
     t_.start();
     is_running_ = true;
@@ -72,7 +71,7 @@ void linear_mixer::start() {
 }
 
 void linear_mixer::stop() {
-  scoped_lock lk(wlock(m_));
+  scoped_lock lk(m_);
   if (is_running_) {
     is_running_ = false;
     t_.join();
@@ -80,7 +79,7 @@ void linear_mixer::stop() {
 }
 
 void linear_mixer::updated() {
-  scoped_lock lk(wlock(m_));
+  scoped_lock lk(m_);
   unsigned int new_ticktime = time(NULL);
   ++counter_;
   if(counter_ > count_threshold_ ||
@@ -90,7 +89,7 @@ void linear_mixer::updated() {
 }
 
 void linear_mixer::get_status(server_base::status_t& status) const {
-  scoped_lock lk(rlock(m_));
+  scoped_lock lk(m_);
   map<string, string>& my_status = status["linear_mixer"];
   my_status["count"] = pfi::lang::lexical_cast<string>(counter_);
   my_status["ticktime"] = pfi::lang::lexical_cast<string>(ticktime_);  // since last mix
@@ -107,7 +106,7 @@ void linear_mixer::mixer_loop() {
     common::lock_service_mutex zklock(*zk_, path + "/master_lock");
     try {
       {
-        scoped_lock lk(wlock(m_));
+        scoped_lock lk(m_);
 
         c_.wait(m_, 1);
         unsigned int new_ticktime = time(NULL);
@@ -178,7 +177,7 @@ void linear_mixer::mix() {
 vector<string> linear_mixer::get_diff(int) {
   std::vector<std::string> o;
 
-  scoped_lock lk(rlock(m_));
+  scoped_lock lk(m_);
   if (mixables_.empty()) {
     throw JUBATUS_EXCEPTION(config_not_set()); // nothing to mix
   }
@@ -189,7 +188,7 @@ vector<string> linear_mixer::get_diff(int) {
 }
 
 int linear_mixer::put_diff(const std::vector<std::string>& unpacked) {
-  scoped_lock lk(wlock(m_));
+  scoped_lock lk(m_);
   if (unpacked.size() != mixables_.size()) {
     //deserialization error
     return -1;

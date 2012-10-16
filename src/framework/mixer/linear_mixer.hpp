@@ -18,9 +18,9 @@
 #pragma once
 
 #include <string>
-#include <pficommon/concurrent/thread.h>
-#include <pficommon/concurrent/rwmutex.h>
 #include <pficommon/concurrent/condition.h>
+#include <pficommon/concurrent/mutex.h>
+#include <pficommon/concurrent/thread.h>
 #include <pficommon/lang/shared_ptr.h>
 #include "../../common/lock_service.hpp"
 #include "../../common/shared_ptr.hpp"
@@ -71,7 +71,7 @@ private:
   volatile bool is_running_;
 
   pfi::concurrent::thread t_;
-  mutable pfi::concurrent::rw_mutex m_;
+  mutable pfi::concurrent::mutex m_;
   pfi::concurrent::condition c_;
   std::vector<mixable0*> mixables_;
 };
