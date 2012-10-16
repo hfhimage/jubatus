@@ -103,6 +103,14 @@ namespace jubatus { namespace framework {
     return ret.str();
   };
 
+  std::string get_server_identifier(const server_argv& a) {
+    std::stringstream ss;
+    ss << a.eth;
+    ss << "_";
+    ss << a.port;
+    return ss.str();
+  }
+
   keeper_argv::keeper_argv(int args, char** argv, const std::string& t)
     : type(t)
   {

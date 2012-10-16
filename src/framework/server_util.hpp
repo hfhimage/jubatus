@@ -77,6 +77,8 @@ struct server_argv {
   std::string boot_message(const std::string& progname) const;
 };
 
+std::string get_server_identifier(const server_argv& a);
+
 
 struct keeper_argv {
   keeper_argv(int args, char** argv, const std::string& t);
