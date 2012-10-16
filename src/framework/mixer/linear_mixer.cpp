@@ -52,7 +52,8 @@ private:
 };
 
 linear_communication_impl::linear_communication_impl(common::cshared_ptr<common::lock_service>& zk,
-    const std::string& type, const std::string& name)
+                                                     const std::string& type, const std::string& name,
+                                                     int timeout_sec)
     : zk_(zk),
       type_(type),
       name_(name),
