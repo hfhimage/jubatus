@@ -86,7 +86,7 @@ void linear_communication_impl::put_diff(const vector<string>& mixed) const {
 
 } // namespace
 
-static pfi::lang::shared_ptr<linear_communication>
+pfi::lang::shared_ptr<linear_communication>
 linear_communication::create(common::cshared_ptr<common::lock_service>& zk,
                         const std::string& type, const std::string& name,
                         int timeout_sec) {
