@@ -49,7 +49,7 @@ public:
   virtual void get_diff(std::vector<common::mprpc::rpc_result_object>& result) const = 0;
   // it can throw common::mprpc exception
   virtual void put_diff(const std::vector<std::string>& mixed) const = 0;
-}
+};
 
 class linear_mixer : public mixer {
 public:
