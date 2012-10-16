@@ -156,8 +156,6 @@ vector<mixable0*> linear_mixer::get_mixables() const {
 
 void linear_mixer::mixer_loop() {
   while (is_running_) {
-    string path;
-    common::build_actor_path(path, type_, name_);
     pfi::lang::shared_ptr<common::lock_service_mutex> zklock = communication_->create_lock();
     try {
       {
