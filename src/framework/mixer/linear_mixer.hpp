@@ -34,7 +34,7 @@ namespace mixer {
 class linear_communication {
 public:
   static pfi::lang::shared_ptr<linear_communication>
-    create(common::cshared_ptr<common::lock_service>& zk,
+    create(const common::cshared_ptr<common::lock_service>& zk,
            const std::string& type, const std::string& name, int timeout_sec);
 
   virtual ~linear_communication() {}

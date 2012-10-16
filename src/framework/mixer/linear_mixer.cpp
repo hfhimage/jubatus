@@ -36,7 +36,7 @@ namespace mixer {
 namespace {
 class linear_communication_impl : public linear_communication {
 public:
-  linear_communication_impl(common::cshared_ptr<common::lock_service>& zk,
+  linear_communication_impl(const common::cshared_ptr<common::lock_service>& zk,
                             const std::string& type, const std::string& name, int timeout_sec);
 
   size_t update_members();
@@ -52,7 +52,7 @@ private:
   vector<pair<string, int> > servers_;
 };
 
-linear_communication_impl::linear_communication_impl(common::cshared_ptr<common::lock_service>& zk,
+linear_communication_impl::linear_communication_impl(const common::cshared_ptr<common::lock_service>& zk,
                                                      const std::string& type, const std::string& name,
                                                      int timeout_sec)
     : zk_(zk),
@@ -87,7 +87,7 @@ void linear_communication_impl::put_diff(const vector<string>& mixed) const {
 } // namespace
 
 pfi::lang::shared_ptr<linear_communication>
-linear_communication::create(common::cshared_ptr<common::lock_service>& zk,
+linear_communication::create(const common::cshared_ptr<common::lock_service>& zk,
                         const std::string& type, const std::string& name,
                         int timeout_sec) {
   return pfi::lang::shared_ptr<linear_communication_impl>(new linear_communication_impl(zk, type, name, timeout_sec));
