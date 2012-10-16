@@ -25,6 +25,9 @@
 #include <pficommon/concurrent/rwmutex.h>
 #include <pficommon/network/mprpc.h>
 #include <pficommon/system/sysstat.h>
+#include "../common/cht.hpp"
+#include "../common/global_id_generator.hpp"
+#include "../common/membership.hpp"
 #include "../common/shared_ptr.hpp"
 #include "../common/lock_service.hpp"
 #include "server_util.hpp"
@@ -43,6 +46,7 @@ public:
         zk_(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name())),
 #endif
         server_(new Server(a, zk_)),
+        idgen_(a_.is_standalone()),
         use_cht_(false) {}
 
   std::map<std::string, std::string> get_loads() const {
@@ -93,7 +97,7 @@ public:
 #ifdef HAVE_ZOOKEEPER_H
     if (!a_.is_standalone()) {
       ls = zk_;
-      jubatus::common::prepare_jubatus(*zk_, a_.type, a_.name);
+      common::prepare_jubatus(*zk_, a_.type, a_.name);
     
       std::string counter_path;
       common::build_actor_path(counter_path, a_.type, a_.name);
@@ -101,7 +105,7 @@ public:
 
       if (a_.join) { // join to the existing cluster with -j option
         LOG(INFO) << "joining to the cluseter " << a_.name;
-        join_to_cluster(zk_);
+        LOG(ERROR) << "join is not supported yet :(";
       }
     
       if (use_cht_) {
@@ -149,6 +153,7 @@ private:
   common::cshared_ptr<jubatus::common::lock_service> zk_;
   pfi::concurrent::rw_mutex rw_mutex_;
   common::cshared_ptr<Server> server_;
+  common::global_id_generator idgen_;
   bool use_cht_;
 };
 
