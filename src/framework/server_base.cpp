@@ -18,6 +18,7 @@
 #include "server_base.hpp"
 
 #include <fstream>
+#include <sstream>
 #include <glog/logging.h>
 #include "../common/exception.hpp"
 #include "mixable.hpp"
@@ -26,10 +27,23 @@
 namespace jubatus {
 namespace framework {
 
+namespace {
+
+std::string build_local_path(const server_argv& a,
+                             const std::string& type,
+                             const std::string& id) {
+  std::ostringstream path;
+  path << a.tmpdir << '/' << a.eth << '_' << a.port << '_' << type << '_' << id << ".js";
+  return path.str();
+}
+
+}
+
 server_base::server_base()
     : update_count_(0) {}
 
-void server_base::save(const std::string& path, const std::string& id) {
+void server_base::save(const std::string& id) {
+  const std::string path = build_local_path(get_argv(), "jubatus", id);
   std::ofstream ofs(path.c_str(), std::ios::trunc|std::ios::binary);
   if (!ofs) {
     throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error(path + ": cannot open")
@@ -48,7 +62,8 @@ void server_base::save(const std::string& path, const std::string& id) {
   }
 }
 
-void server_base::load(const std::string& path, const std::string& id) {
+void server_base::load(const std::string& id) {
+  const std::string path = build_local_path(get_argv(), "jubatus", id);
   std::ifstream ifs(path.c_str(), std::ios::binary);
   if (!ifs) {
     throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error(path + ": cannot open")

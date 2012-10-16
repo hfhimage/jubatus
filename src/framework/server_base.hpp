@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <pficommon/lang/shared_ptr.h>
+#include "server_util.hpp"
 
 namespace jubatus {
 namespace framework {
@@ -42,8 +43,8 @@ public:
   virtual mixer::mixer* get_mixer() const = 0;
   virtual void get_status(status_t& status) const = 0;
 
-  virtual void save(const std::string& path, const std::string& id);
-  virtual void load(const std::string& path, const std::string& id);
+  virtual void save(const std::string& id);
+  virtual void load(const std::string& id);
   void event_model_updated();
 
   uint64_t update_count() const {
@@ -52,6 +53,7 @@ public:
 
 protected:
   virtual std::vector<mixable0*> get_mixables() const = 0;
+  virtual const server_argv& get_argv() const = 0;
 
 private:
   uint64_t update_count_;
