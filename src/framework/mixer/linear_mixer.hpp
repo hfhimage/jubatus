@@ -30,11 +30,29 @@ namespace jubatus {
 namespace framework {
 namespace mixer {
 
+class linear_communication {
+public:
+  static pfi::lang::shared_ptr<linear_communication>
+    create(common::cshared_ptr<common::lock_service>& zk,
+           const std::string& type, const std::string& name, int timeout_sec);
+
+  virtual ~linear_communication() {}
+
+  // Call update_members once before using get_diff and put_diff
+  virtual size_t update_members() = 0;
+
+  // We use shared_ptr instead of auto_ptr/unique_ptr because in C++03 specification limits.
+  virtual pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock() = 0;
+
+  // it can throw common::mprpc exception
+  virtual void get_diff(std::vector<common::mprpc::rpc_result_object>& result) const = 0;
+  // it can throw common::mprpc exception
+  virtual void put_diff(const std::vector<std::string>& mixed) const = 0;
+}
+
 class linear_mixer : public mixer {
 public:
-  linear_mixer(const common::cshared_ptr<common::lock_service>& zk,
-               const std::string& type, const std::string& name,
-               int timeout_sec,
+  linear_mixer(pfi::lang::shared_ptr<linear_communication> communicaiton,
                unsigned int count_threshold, unsigned int tick_threshold);
 
   void register_api(pfi::network::mprpc::rpc_server& server);
@@ -57,10 +75,7 @@ private:
   std::vector<std::string> get_diff(int);
   int put_diff(const std::vector<std::string>& unpacked);
 
-  common::cshared_ptr<common::lock_service> zk_;
-  std::string type_;
-  std::string name_;
-  int timeout_sec_;
+  pfi::lang::shared_ptr<linear_communication> communicaiton_;
   unsigned int count_threshold_;
   unsigned int tick_threshold_;
 
