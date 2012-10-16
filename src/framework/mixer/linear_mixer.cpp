@@ -40,7 +40,7 @@ public:
                             const std::string& type, const std::string& name, int timeout_sec);
 
   size_t update_members();
-  pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock();
+  pfi::lang::shared_ptr<common::try_lockable> create_lock();
   void get_diff(common::mprpc::rpc_result_object&) const;
   void put_diff(const vector<string>&) const;
 
@@ -61,10 +61,10 @@ linear_communication_impl::linear_communication_impl(common::cshared_ptr<common:
       timeout_sec_(timeout_sec) {
 }
 
-pfi::lang::shared_ptr<pfi::concurrent::lockable> linear_communication_impl::create_lock() {
+pfi::lang::shared_ptr<common::try_lockable> linear_communication_impl::create_lock() {
   string path;
   common::build_actor_path(path, type_, name_);
-  return pfi::lang::shared_ptr<pfi::concurrent::lockable>(new common::lock_service_mutex(*zk_, path + "/master_lock"));
+  return pfi::lang::shared_ptr<common::try_lockable>(new common::lock_service_mutex(*zk_, path + "/master_lock"));
 }
 
 size_t linear_communication_impl::update_members() {
@@ -156,7 +156,7 @@ vector<mixable0*> linear_mixer::get_mixables() const {
 
 void linear_mixer::mixer_loop() {
   while (is_running_) {
-    pfi::lang::shared_ptr<common::lock_service_mutex> zklock = communication_->create_lock();
+    pfi::lang::shared_ptr<common::try_lockable> zklock = communication_->create_lock();
     try {
       {
         scoped_lock lk(m_);

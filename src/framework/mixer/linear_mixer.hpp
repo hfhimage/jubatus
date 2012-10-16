@@ -43,7 +43,7 @@ public:
   virtual size_t update_members() = 0;
 
   // We use shared_ptr instead of auto_ptr/unique_ptr because in C++03 specification limits.
-  virtual pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock() = 0;
+  virtual pfi::lang::shared_ptr<common::try_lockable> create_lock() = 0;
 
   // it can throw common::mprpc exception
   virtual void get_diff(common::mprpc::rpc_result_object& result) const = 0;
