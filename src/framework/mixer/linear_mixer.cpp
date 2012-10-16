@@ -41,7 +41,7 @@ public:
 
   size_t update_members();
   pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock();
-  void get_diff(vector<common::mprpc::rpc_result_object>&) const;
+  void get_diff(common::mprpc::rpc_result_object&) const;
   void put_diff(const vector<string>&) const;
 
 private:
@@ -72,7 +72,7 @@ size_t linear_communication_impl::update_members() {
   return servers_.size();
 }
 
-void linear_communication_impl::get_diff(vector<common::mprpc::rpc_result_object>& result) const {
+void linear_communication_impl::get_diff(common::mprpc::rpc_result_object& result) const {
   // TODO: to be replaced to new client with socket connection pooling
   common::mprpc::rpc_mclient client(servers_, timeout_sec_);
   result = client.call("get_diff", 0);

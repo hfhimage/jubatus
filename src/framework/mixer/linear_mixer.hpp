@@ -46,7 +46,7 @@ public:
   virtual pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock() = 0;
 
   // it can throw common::mprpc exception
-  virtual void get_diff(std::vector<common::mprpc::rpc_result_object>& result) const = 0;
+  virtual void get_diff(common::mprpc::rpc_result_object& result) const = 0;
   // it can throw common::mprpc exception
   virtual void put_diff(const std::vector<std::string>& mixed) const = 0;
 };
