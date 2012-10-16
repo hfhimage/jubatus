@@ -46,12 +46,12 @@ public:
   virtual void load(const std::string& path, const std::string& id);
   void event_model_updated();
 
-protected:
-  virtual std::vector<mixable0*> get_mixables() const = 0;
-
   uint64_t update_count() const {
     return update_count_;
   }
+
+protected:
+  virtual std::vector<mixable0*> get_mixables() const = 0;
 
 private:
   uint64_t update_count_;
