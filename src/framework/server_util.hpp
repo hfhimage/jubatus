@@ -114,23 +114,9 @@ int run_server(int args, char** argv, const std::string& type)
   try {
     ImplServerClass impl_server(server_argv(args, argv, type));
 #ifdef HAVE_ZOOKEEPER_H
-    pfi::network::mprpc::rpc_server& serv = impl_server;
-    serv.add<std::vector<std::string>(int)>
-      ("get_diff",
-       pfi::lang::bind(&UserServClass::get_diff_impl,
-           impl_server.get_p().get(), pfi::lang::_1));
-    serv.add<int(std::vector<std::string>)>
-      ("put_diff",
-       pfi::lang::bind(&UserServClass::put_diff_impl,
-           impl_server.get_p().get(), pfi::lang::_1));
-    serv.add<std::string()>
-      ("get_storage",
-       pfi::lang::bind(&UserServClass::get_storage,
-           impl_server.get_p().get()));
-
+    impl_server.get_p()->get_mixer()->register_api(impl_server);
     jubatus::util::set_exit_on_term();
     ::atexit(jubatus::framework::atexit);
-
 #endif // HAVE_ZOOKEEPER_H
     jubatus::util::ignore_sigpipe();
     return impl_server.run();
