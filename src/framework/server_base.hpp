@@ -52,7 +52,7 @@ public:
   }
 
 protected:
-  virtual std::vector<mixable0*> get_mixables() const = 0;
+  virtual std::vector<mixable0*> get_mixables() = 0;
   virtual const server_argv& get_argv() const = 0;
 
 private:
