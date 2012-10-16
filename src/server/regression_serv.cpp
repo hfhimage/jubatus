@@ -86,7 +86,7 @@ int regression_serv::train(std::vector<std::pair<float, jubatus::datum> > data) 
   
   for (size_t i = 0; i < data.size(); ++i) {
     convert<jubatus::datum, fv_converter::datum>(data[i].second, d);
-    converter_->convert(d, v);
+    converter_->convert_and_update_weight(d, v);
     gresser_.regression_->train(v, data[i].first);
     count++;
   }
