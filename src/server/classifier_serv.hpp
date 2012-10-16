@@ -35,8 +35,8 @@ namespace server {
 
 class classifier_serv : public framework::server_base {
 public:
-  explicit classifier_serv(const framework::server_argv& a,
-                           const common::cshared_ptr<common::lock_service>& zk);
+  classifier_serv(const framework::server_argv& a,
+                  const common::cshared_ptr<common::lock_service>& zk);
   virtual ~classifier_serv();
 
   framework::mixer::mixer* get_mixer() const {
