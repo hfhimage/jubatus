@@ -69,6 +69,7 @@ pfi::lang::shared_ptr<pfi::concurrent::lockable> linear_communication_impl::crea
 
 size_t linear_communication_impl::update_members() {
   common::get_all_actors(*zk_, type_, name_, servers_);
+  return servers_.size();
 }
 
 void linear_communication_impl::get_diff(vector<common::mprpc::rpc_result_object>& result) const {
