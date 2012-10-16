@@ -44,7 +44,7 @@ linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
 
 classifier_serv::classifier_serv(const framework::server_argv& a,
                                  const cshared_ptr<lock_service>& zk)
-    : mixer_(new mixer::linear_mixer(zk, a.type, a.name, a.timeout,
+    : mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
                                      a.interval_count, a.interval_sec)),
       a_(a) {
   clsfer_.set_model(make_model(a));
