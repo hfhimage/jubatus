@@ -50,7 +50,7 @@ void server_base::save(const std::string& id) {
         << jubatus::exception::error_errno(errno));
   }
   try {
-    std::vector<pfi::lang::shared_ptr<mixable0> > mixables = get_mixables();
+    std::vector<mixable0*> mixables = get_mixables();
     for (size_t i = 0; i < mixables.size(); ++i) {
       mixables[i]->save(ofs);
     }
@@ -70,7 +70,7 @@ void server_base::load(const std::string& id) {
                             << jubatus::exception::error_errno(errno));
   }
   try {
-    std::vector<pfi::lang::shared_ptr<mixable0> > mixables = get_mixables();
+    std::vector<mixable0*> mixables = get_mixables();
     for (size_t i = 0; i < mixables.size(); ++i) {
       mixables[i]->clear();
       mixables[i]->load(ifs);
