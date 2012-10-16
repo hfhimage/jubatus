@@ -95,7 +95,7 @@ linear_communication::create(common::cshared_ptr<common::lock_service>& zk,
 
 linear_mixer::linear_mixer(pfi::lang::shared_ptr<linear_communication> communication,
                            unsigned int count_threshold, unsigned int tick_threshold)
-    : communication_(communication)
+    : communication_(communication),
       count_threshold_(count_threshold),
       tick_threshold_(tick_threshold),
       counter_(0),
