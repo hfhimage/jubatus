@@ -76,7 +76,7 @@ private:
   std::vector<std::string> get_diff(int);
   int put_diff(const std::vector<std::string>& unpacked);
 
-  pfi::lang::shared_ptr<linear_communication> communicaiton_;
+  pfi::lang::shared_ptr<linear_communication> communication_;
   unsigned int count_threshold_;
   unsigned int tick_threshold_;
 
