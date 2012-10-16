@@ -34,14 +34,66 @@ namespace jubatus {
 namespace framework {
 namespace mixer {
 
-linear_mixer::linear_mixer(common::cshared_ptr<common::lock_service>& zk,
-                           const string& type, const string& name,
-                           int timeout_sec,
-                           unsigned int count_threshold, unsigned int tick_threshold)
+namespace {
+class linear_communication_impl : public linear_communication {
+public:
+  linear_communication_impl(common::cshared_ptr<common::lock_service>& zk,
+                            const std::string& type, const std::string& name, int timeout_sec);
+
+  pfi::lang::shared_ptr<pfi::concurrent::lockable> create_lock();
+  void get_diff(vector<common::mprpc::rpc_result_object>&) const;
+  void put_diff(const vector<string>&) const;
+
+private:
+  common::cshared_ptr<common::lock_service> zk_;
+  string type_;
+  string name_;
+  int timeout_sec_;
+  vector<pair<string, int> > servers_;
+};
+
+linear_communication_impl::linear_communication_impl(common::cshared_ptr<common::lock_service>& zk,
+    const std::string& type, const std::string& name)
     : zk_(zk),
       type_(type),
       name_(name),
-      timeout_sec_(timeout_sec),
+      timeout_sec_(timeout_sec) {
+}
+
+pfi::lang::shared_ptr<pfi::concurrent::lockable> linear_communication_impl::create_lock() {
+  string path;
+  common::build_actor_path(path, type_, name_);
+  return pfi::lang::shared_ptr<pfi::concurrent::lockable>(new common::lock_service_mutex(*zk_, path + "/master_lock"));
+}
+
+size_t linear_communication_impl::update_members() {
+  common::get_all_actors(*zk_, type_, name_, servers_);
+}
+
+void linear_communication_impl::get_diff(vector<common::mprpc::rpc_result_object>& result) const {
+  // TODO: to be replaced to new client with socket connection pooling
+  common::mprpc::rpc_mclient client(servers_, timeout_sec_);
+  result = client.call("get_diff", 0);
+}
+
+void linear_communication_impl::put_diff(const vector<string>& mixed) const {
+  // TODO: to be replaced to new client with socket connection pooling
+  common::mprpc::rpc_mclient client(servers_, timeout_sec_);
+  client.call("put_diff", mixed);
+}
+
+} // namespace
+
+static pfi::lang::shared_ptr<linear_communication>
+linear_communication::create(common::cshared_ptr<common::lock_service>& zk,
+                        const std::string& type, const std::string& name,
+                        int timeout_sec) {
+  return pfi::lang::shared_ptr<linear_communication_impl>(new linear_communication_impl(zk, type, name, timeout_sec));
+}
+
+linear_mixer::linear_mixer(pfi::lang::shared_ptr<linear_communication> communication,
+                           unsigned int count_threshold, unsigned int tick_threshold)
+    : communication_(communication)
       count_threshold_(count_threshold),
       tick_threshold_(tick_threshold),
       counter_(0),
@@ -100,7 +152,7 @@ void linear_mixer::mixer_loop() {
   while (is_running_) {
     string path;
     common::build_actor_path(path, type_, name_);
-    common::lock_service_mutex zklock(*zk_, path + "/master_lock");
+    pfi::lang::shared_ptr<common::lock_service_mutex> zklock = communication_->create_lock();
     try {
       {
         scoped_lock lk(wlock(m_));
@@ -108,7 +160,7 @@ void linear_mixer::mixer_loop() {
         c_.wait(m_, 1);
         unsigned int new_ticktime = time(NULL);
         if (counter_ > count_threshold_ || new_ticktime - ticktime_ > tick_threshold_) {
-          if (zklock.try_lock()) {
+          if (zklock->try_lock()) {
             DLOG(INFO) << "starting mix:";
             counter_ = 0;
             ticktime_ = new_ticktime;
@@ -131,19 +183,18 @@ void linear_mixer::mixer_loop() {
 void linear_mixer::mix() {
   using namespace pfi::system::time;
 
-  vector<pair<string,int> > servers;
-  common::get_all_actors(*zk_, type_, name_, servers);
   //vector<string> serialized_diffs;
   clock_time start = get_clock_time();
   size_t s = 0;
 
-  if (servers.empty()) {
+  size_t servers_size = communication_->update_members();
+  if (servers_size == 0) {
     LOG(WARNING) << "no other server. ";
     return;
   } else {
-    common::mprpc::rpc_mclient c(servers, timeout_sec_);
     try {
-      common::mprpc::rpc_result_object result = c.call("get_diff", 0);
+      common::mprpc::rpc_result_object result;
+      communication_->get_diff(result);
 
       vector<string> mixed = result.response.front().as<vector<string> >();
       for (size_t i = 1; i < result.response.size(); ++i) {
@@ -153,7 +204,7 @@ void linear_mixer::mix() {
         }
       }
 
-      c.call("put_diff", mixed);
+      communication_->put_diff(mixed);
       // TODO: output log when result has error
 
       for (size_t i = 0; i < mixed.size(); ++i) {
@@ -166,7 +217,7 @@ void linear_mixer::mix() {
   }
 
   clock_time end = get_clock_time();
-  DLOG(INFO) << "mixed with " << servers.size() << " servers in " << (double)(end - start) << " secs, "
+  DLOG(INFO) << "mixed with " << servers_size << " servers in " << (double)(end - start) << " secs, "
              << s << " bytes (serialized data) has been put.";
   mix_count_++;
 }
