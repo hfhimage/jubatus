@@ -30,6 +30,7 @@
 #include "../common/membership.hpp"
 #include "../common/shared_ptr.hpp"
 #include "../common/lock_service.hpp"
+#include "mixer/mixer.hpp"
 #include "server_util.hpp"
 
 namespace jubatus {
