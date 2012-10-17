@@ -46,7 +46,7 @@ public:
         idgen_(a_.is_standalone()),
         use_cht_(false) {
 #ifdef HAVE_ZOOKEEPER_H
-    if (a_.is_standalone()) {
+    if (!a_.is_standalone()) {
       zk_.reset(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name()));
     }
 #endif
