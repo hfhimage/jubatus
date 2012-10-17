@@ -237,6 +237,10 @@ class datum_to_fv_converter_impl {
     hasher_ = feature_hasher(hash_max_size);
   }
 
+  weight_manager& get_weight_manager() {
+    return weights_;
+  }
+
  private:
 
   void filter_strings(const datum::sv_t& string_values,
@@ -455,6 +459,10 @@ void datum_to_fv_converter::revert_feature(const string& feature,
 
 void datum_to_fv_converter::set_hash_max_size(uint64_t hash_max_size) {
   pimpl_->set_hash_max_size(hash_max_size);
+}
+
+weight_manager& datum_to_fv_converter::get_weight_manager() {
+  return pimpl_->get_weight_manager();
 }
 
 }

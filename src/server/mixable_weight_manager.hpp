@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <pficommon/data/serialization.h>
+
 #include "../fv_converter/weight_manager.hpp"
 #include "../framework/mixable.hpp"
 #include "../common/shared_ptr.hpp"
@@ -27,31 +29,68 @@ namespace server{
 using jubatus::fv_converter::weight_manager;
 using jubatus::fv_converter::keyword_weights;
 
-struct mixable_weight_manager : public framework::mixable<weight_manager, keyword_weights>
+// TODO manage weight_manager pointer
+struct mixable_weight_manager : public framework::mixable0
 {
-  mixable_weight_manager(){
-    function<keyword_weights(const weight_manager*)>
-      getdiff(&mixable_weight_manager::get_diff);
-    function<int(const weight_manager*, const keyword_weights&,keyword_weights&)>
-      reduce(&mixable_weight_manager::reduce);
-    function<int(weight_manager*,const keyword_weights&)>
-      putdiff(&mixable_weight_manager::put_diff);
-    set_mixer(getdiff,reduce,putdiff);
-  };
-  static keyword_weights get_diff(const weight_manager* wm){
-    return wm->get_diff();
-  };
-  static int reduce(const weight_manager*, const keyword_weights& lhs, keyword_weights& rhs){
-    rhs.merge(lhs);
-    return 0;
-  };
-  static int put_diff(weight_manager* wm, const keyword_weights& diff){
-    wm->put_diff(diff);
-    return 0;
-  };
-  void clear(){};
+  mixable_weight_manager(jubatus::fv_converter::weight_manager* weight_manager = 0)
+      : weight_manager_(weight_manager) {}
 
-  common::cshared_ptr<weight_manager> wm_;
+  // TODO use msgpack object or something instead of std::string
+  std::string get_diff() const {
+    if (weight_manager_) {
+      std::ostringstream os;
+      pfi::data::serialization::binary_oarchive bo(os);
+      bo << const_cast<fv_converter::keyword_weights&>(weight_manager_->get_diff());
+      return os.str();
+    } else {
+      return "";
+    }
+  }
+
+  // TODO use msgpack object or something instead of std::string
+  void put_diff(const std::string& diff) {
+    if (weight_manager_) {
+      keyword_weights w;
+      std::istringstream is(diff);
+      pfi::data::serialization::binary_iarchive bi(is);
+      bi >> w;
+      weight_manager_->put_diff(w);
+    }
+  }
+
+  // TODO use msgpack object or something instead of std::string
+  void reduce(const std::string& diff, std::string& acc) const {
+    if (weight_manager_) {
+      keyword_weights diff_weight, acc_weight;
+      std::istringstream diff_is(diff), acc_is(acc);
+      pfi::data::serialization::binary_iarchive diff_bi(diff_is), acc_bi(acc_is);
+      diff_bi >> diff_weight;
+      acc_bi >> acc_weight;
+      acc_weight.merge(diff_weight);
+      std::ostringstream os;
+      pfi::data::serialization::binary_oarchive bo(os);
+      bo << const_cast<fv_converter::keyword_weights&>(weight_manager_->get_diff());
+      acc = os.str();
+    }
+  }
+
+  void save(std::ostream& os) {
+    if (weight_manager_) {
+      pfi::data::serialization::binary_oarchive bo(os);
+      bo << *weight_manager_;
+    }
+  }
+
+  void load(std::istream& is) {
+    if (weight_manager_) {
+      pfi::data::serialization::binary_iarchive bi(is);
+      bi >> *weight_manager_;
+    }
+  }
+
+  void clear() {}
+
+  fv_converter::weight_manager* weight_manager_;
 };
 
 }}

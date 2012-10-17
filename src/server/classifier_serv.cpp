@@ -27,6 +27,8 @@
 #include "../common/vector_util.hpp"
 #include "../common/shared_ptr.hpp"
 
+#include "mixable_weight_manager.hpp"
+
 #include <glog/logging.h>
 
 #include <cmath> //for isfinite()
@@ -50,6 +52,7 @@ classifier_serv::classifier_serv(const framework::server_argv& a)
 {
   clsfer_.set_model(make_model());
   register_mixable(&clsfer_);
+  register_mixable(&wm_);
 }
 
 classifier_serv::~classifier_serv() {
@@ -63,6 +66,7 @@ int classifier_serv::set_config(config_data config) {
 
   config_ = config;
   converter_ = converter;
+  wm_.weight_manager_ = &converter->get_weight_manager();
 
   clsfer_.classifier_.reset(classifier_factory::create_classifier(config.method, clsfer_.get_model().get()));
 

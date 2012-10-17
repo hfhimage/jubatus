@@ -29,6 +29,7 @@
 #include "classifier_types.hpp"
 #include "jubatus_serv.hpp"
 #include "diffv.hpp"
+#include "mixable_weight_manager.hpp"
 
 namespace jubatus{
 namespace server{
@@ -86,6 +87,8 @@ private:
   config_data config_;
   pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter> converter_;
   clsfer clsfer_;
+  mixable_weight_manager wm_;
+
 };
 
 void mix_parameter(diffv& lhs, const diffv& rhs);

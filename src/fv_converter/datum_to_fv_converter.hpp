@@ -52,6 +52,7 @@ class key_matcher;
 class num_feature;
 class string_filter;
 class num_filter;
+class weight_manager;
 
 class datum_to_fv_converter {
  public:
@@ -89,6 +90,8 @@ class datum_to_fv_converter {
                       std::pair<std::string, std::string>& expect) const;
 
   void set_hash_max_size(uint64_t hash_max_size);
+
+  weight_manager& get_weight_manager();
 
  private:
   pfi::lang::scoped_ptr<datum_to_fv_converter_impl> pimpl_;
