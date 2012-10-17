@@ -44,7 +44,7 @@ public:
   explicit server_helper(const server_argv& a)
       : a_(a),
 #ifdef HAVE_ZOOKEEPER_H
-        zk_(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name())),
+        zk_(a_.is_standalone() ? NULL : common::create_lock_service("zk", a.z, a.timeout, make_logfile_name())),
 #endif
         server_(new Server(a, zk_)),
         idgen_(a_.is_standalone()),
