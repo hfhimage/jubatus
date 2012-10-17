@@ -61,8 +61,10 @@ public:
     return result;
   }
 
-  status_t get_status() const {
-    std::map<std::string, std::string> data;
+  std::map<std::string, status_t> get_status() const {
+    std::map<std::string, status_t> status;
+    status_t& data = status[get_server_identifier(a_)];
+
     util::get_machine_status(data);
   
     data["timeout"] = pfi::lang::lexical_cast<std::string>(a_.timeout);
@@ -76,16 +78,13 @@ public:
 
     data["update_count"] = pfi::lang::lexical_cast<std::string>(server_->update_count());
 
-    status_t status;
+    server_->get_status(data);
 
 #ifdef HAVE_ZOOKEEPER_H
-    server_->get_mixer()->get_status(status);
+    server_->get_mixer()->get_status(data);
     data["zk"] = a_.z;
     data["use_cht"] = pfi::lang::lexical_cast<std::string>(use_cht_);
 #endif
-  
-    status[get_server_identifier(a_)].swap(data);
-    server_->get_status(status);
 
     return status;
   }

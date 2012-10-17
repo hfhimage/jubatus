@@ -35,7 +35,7 @@ class mixer;
 
 class server_base {
 public:
-  typedef std::map<std::string, std::map<std::string, std::string> > status_t;
+  typedef std::map<std::string, std::string> status_t;
 
   server_base();
   virtual ~server_base() {}
