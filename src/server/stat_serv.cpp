@@ -53,31 +53,38 @@ void stat_serv::get_status(status_t& status) const {
   status.insert(make_pair("storage", stat_.get_model()->type()));
 }
 
-bool stat_serv::set_config(const config_data& config){
+bool stat_serv::set_config(const config_data& config) {
   config_ = config;
   common::cshared_ptr<stat::mixable_stat> model(new stat::mixable_stat(config_.window_size));
   stat_.set_model(model);
   return 0;
 }
-config_data stat_serv::get_config()const{
+
+config_data stat_serv::get_config() const {
   return config_;
 }
-int stat_serv::push(const std::string& key, double value){
+
+int stat_serv::push(const std::string& key, double value) {
   stat_.get_model()->push(key,value);
   return 0;
 }
+
 double stat_serv::sum(const std::string& key) const {
   return stat_.get_model()->sum(key);
 }
+
 double stat_serv::stddev(const std::string& key) const {
   return stat_.get_model()->stddev(key);
 }
+
 double stat_serv::max(const std::string& key) const {
   return stat_.get_model()->max(key);
 }
+
 double stat_serv::min(const std::string& key) const {
   return stat_.get_model()->min(key);
 }
+
 double stat_serv::entropy(const std::string& key) const {
 #ifdef HAVE_ZOOKEEPER_H
   //FIXME: currently gets old value of entropy when mix completed
@@ -86,7 +93,8 @@ double stat_serv::entropy(const std::string& key) const {
   return stat_.get_model()->entropy();
 #endif
 }
-double stat_serv::moment(const std::string& key, int n,double c) const{
+
+double stat_serv::moment(const std::string& key, int n,double c) const {
   return stat_.get_model()->moment(key, n, c);
 }
 
