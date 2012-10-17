@@ -42,8 +42,7 @@ public:
   typedef typename Server::status_t status_t;
 
   explicit server_helper(const server_argv& a)
-      : idgen_(a.is_standalone()),
-        use_cht_(false) {
+      : use_cht_(false) {
 #ifdef HAVE_ZOOKEEPER_H
     if (!a.is_standalone()) {
       zk_.reset(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name()));
@@ -104,10 +103,6 @@ public:
       ls = zk_;
       common::prepare_jubatus(*zk_, a.type, a.name);
     
-      std::string counter_path;
-      common::build_actor_path(counter_path, a.type, a.name);
-      idgen_.set_ls(zk_, counter_path);
-
       if (a.join) { // join to the existing cluster with -j option
         LOG(INFO) << "joining to the cluseter " << a.name;
         LOG(ERROR) << "join is not supported yet :(";
@@ -118,7 +113,7 @@ public:
         jubatus::common::cht ht(zk_, a.type, a.name);
         ht.register_node(a.eth, a.port);
       }
-    
+   
       // FIXME(rethink): is this sequence correct?
       register_actor(*zk_, a.type, a.name, a.eth, a.port);
       server_->get_mixer()->start();
@@ -156,7 +151,6 @@ private:
                                       
   common::cshared_ptr<jubatus::common::lock_service> zk_;
   common::cshared_ptr<Server> server_;
-  common::global_id_generator idgen_;
   bool use_cht_;
 };
 
