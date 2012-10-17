@@ -39,11 +39,11 @@ std::string build_local_path(const server_argv& a,
 
 }
 
-server_base::server_base()
-    : update_count_(0) {}
+server_base::server_base(const server_argv& a)
+    : argv_(a), update_count_(0) {}
 
 bool server_base::save(const std::string& id) {
-  const std::string path = build_local_path(get_argv(), "jubatus", id);
+  const std::string path = build_local_path(argv_, "jubatus", id);
   std::ofstream ofs(path.c_str(), std::ios::trunc|std::ios::binary);
   if (!ofs) {
     throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error(path + ": cannot open")
@@ -64,7 +64,7 @@ bool server_base::save(const std::string& id) {
 }
 
 bool server_base::load(const std::string& id) {
-  const std::string path = build_local_path(get_argv(), "jubatus", id);
+  const std::string path = build_local_path(argv_, "jubatus", id);
   std::ifstream ifs(path.c_str(), std::ios::binary);
   if (!ifs) {
     throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error(path + ": cannot open")

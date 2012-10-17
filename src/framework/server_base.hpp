@@ -38,7 +38,7 @@ class server_base {
 public:
   typedef std::map<std::string, std::string> status_t;
 
-  server_base();
+  explicit server_base(const server_argv& a);
   virtual ~server_base() {}
 
   virtual mixer::mixer* get_mixer() const = 0;
@@ -57,9 +57,12 @@ public:
   }
 
 protected:
-  virtual const server_argv& get_argv() const = 0;
+  const server_argv& argv() const {
+    return argv_;
+  }
 
 private:
+  const server_argv argv_;
   pfi::concurrent::rw_mutex rw_mutex_;
   uint64_t update_count_;
 };

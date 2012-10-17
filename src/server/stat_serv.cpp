@@ -29,7 +29,7 @@ namespace server {
 
 stat_serv::stat_serv(const server_argv& a,
                      const cshared_ptr<lock_service>& zk)
-    : a_(a) {
+    : server_base(a) {
   config_.window_size = 1024; // default till users call set_config
   common::cshared_ptr<stat::mixable_stat> model(new stat::mixable_stat(config_.window_size));
   stat_.set_model(model);
@@ -88,10 +88,6 @@ double stat_serv::entropy(const std::string& key) const {
 }
 double stat_serv::moment(const std::string& key, int n,double c) const{
   return stat_.get_model()->moment(key, n, c);
-}
-
-const server_argv& stat_serv::get_argv() const {
-  return a_;
 }
 
 } // namespace server

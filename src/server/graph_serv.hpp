@@ -110,9 +110,6 @@ public:
 
   int create_edge_here(edge_id_t eid, const edge_info& ei);
 
-protected:
-  const framework::server_argv& get_argv() const;
-
 private:
   void selective_create_node_(const std::pair<std::string,int>& target,
                               const std::string nid_str);
@@ -125,7 +122,6 @@ private:
   common::cshared_ptr<common::lock_service> zk_;
 
   pfi::lang::scoped_ptr<framework::mixer::mixer> mixer_;
-  const framework::server_argv a_;
   common::global_id_generator idgen_;
 
   mixable_graph g_;

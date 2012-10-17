@@ -67,12 +67,8 @@ public:
   double entropy(const std::string&) const;
   double moment(const std::string&, int, double) const;
 
-protected:
-  const framework::server_argv& get_argv() const;
-
 private:
   pfi::lang::scoped_ptr<framework::mixer::mixer> mixer_;
-  const framework::server_argv a_;
 
   jubatus::config_data config_;
   server::mixable_stat stat_;

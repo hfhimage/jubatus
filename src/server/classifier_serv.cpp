@@ -44,7 +44,7 @@ linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
 
 classifier_serv::classifier_serv(const framework::server_argv& a,
                                  const cshared_ptr<lock_service>& zk)
-    : a_(a) {
+    : server_base(a) {
   clsfer_.set_model(make_model(a));
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
 
@@ -152,10 +152,6 @@ void classifier_serv::check_set_config()const
   if (!classifier_){
     throw JUBATUS_EXCEPTION(config_not_set());
   }
-}
-
-const server_argv& classifier_serv::get_argv() const {
-  return a_;
 }
 
 } // namespace server

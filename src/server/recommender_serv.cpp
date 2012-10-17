@@ -37,7 +37,7 @@ namespace server {
 
 recommender_serv::recommender_serv(const server_argv& a,
                                    const cshared_ptr<lock_service>& zk)
-    : a_(a) {
+    : server_base(a) {
 #ifdef HAVE_ZOOKEEPER_H
   mixer_.reset(new mixer::linear_mixer(
       mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
@@ -223,10 +223,6 @@ void recommender_serv::check_set_config()const
   if (!rcmdr_.get_model()){
     throw JUBATUS_EXCEPTION(config_not_set());
   }
-}
-
-const server_argv& recommender_serv::get_argv() const {
-  return a_;
 }
 
 } // namespace recommender

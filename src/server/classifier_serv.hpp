@@ -52,12 +52,8 @@ public:
 
   void check_set_config() const;
 
-protected:
-  const framework::server_argv& get_argv() const;
-
 private:
   pfi::lang::scoped_ptr<framework::mixer::mixer> mixer_;
-  const framework::server_argv a_;
 
   config_data config_;
   pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter> converter_;

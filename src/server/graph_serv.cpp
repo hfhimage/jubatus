@@ -59,8 +59,8 @@ inline uint64_t n2i(const node_id& id){
 
 graph_serv::graph_serv(const framework::server_argv& a,
                        const cshared_ptr<lock_service>& zk)
-    : a_(a),
-      idgen_(a_.is_standalone()) {
+    : server_base(a),
+      idgen_(a.is_standalone()) {
   cshared_ptr<jubatus::graph::graph_base> 
     g(jubatus::graph::create_graph("graph_wo_index"));
   g_.set_model(g);
@@ -87,7 +87,7 @@ std::string graph_serv::create_node(){ /* no lock here */
   uint64_t nid = idgen_.generate();
   std::string nid_str = pfi::lang::lexical_cast<std::string>(nid);
 
-  if(not a_.is_standalone()){
+  if(not argv().is_standalone()){
     // we dont need global locking, because getting unique id from zk
     // guarantees there'll be no data confliction
     {
@@ -130,16 +130,16 @@ int graph_serv::remove_node(const std::string& nid){
   g_.get_model()->remove_node(n2i(nid));
   g_.get_model()->remove_global_node(n2i(nid));
 
-  if(not a_.is_standalone()){
+  if(not argv().is_standalone()){
     // send true remove_node_ to other machine,
     // if conflicts with create_node, users should re-run to ensure removal
     std::vector<std::pair<std::string, int> > members;
     get_members_(members);
     
     if(not members.empty()){
-      common::mprpc::rpc_mclient c(members, a_.timeout); //create global node
+      common::mprpc::rpc_mclient c(members, argv().timeout); //create global node
       try{
-        c.call("remove_global_node", a_.name, nid, pfi::lang::function<int(int,int)>(&jubatus::framework::add<int>));
+        c.call("remove_global_node", argv().name, nid, pfi::lang::function<int(int,int)>(&jubatus::framework::add<int>));
       }catch(const common::mprpc::rpc_no_result& e){ // pass through
         DLOG(INFO) << __func__ << " " << e.diagnostic_information(true);
       }
@@ -155,7 +155,7 @@ int graph_serv::create_edge(const std::string& id, const edge_info& ei)  /* no l
   edge_id_t eid = idgen_.generate();
   //TODO: assert id==ei.src
   
-  if(not a_.is_standalone()){
+  if(not argv().is_standalone()){
     // we dont need global locking, because getting unique id from zk
     // guarantees there'll be no data confliction
     std::vector<std::pair<std::string, int> > nodes;
@@ -170,10 +170,10 @@ int graph_serv::create_edge(const std::string& id, const edge_info& ei)  /* no l
     }
     for(size_t i = 1; i < nodes.size(); ++i){
       try{
-	if(nodes[i].first == a_.eth && nodes[i].second == a_.port){
+	if(nodes[i].first == argv().eth && nodes[i].second == argv().port){
 	}else{
 	  client::graph c(nodes[i].first, nodes[i].second, 5.0);
-	  c.create_edge_here(a_.name, eid, ei);
+	  c.create_edge_here(argv().name, eid, ei);
 	}
       }catch(const graph::local_node_exists& e){ // pass through
       }catch(const graph::global_node_exists& e){// pass through
@@ -293,7 +293,7 @@ edge_info graph_serv::get_edge(const std::string& nid, const edge_id_t& id)const
 
 //@broadcast
 int graph_serv::update_index(){
-  if(not a_.is_standalone()){
+  if(not argv().is_standalone()){
     throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error("manual mix is available only in standalone mode."));
   }
   clock_time start = get_clock_time();
@@ -353,14 +353,10 @@ int graph_serv::create_edge_here(edge_id_t eid, const edge_info& ei)
   return 0;
 }
 
-const server_argv& graph_serv::get_argv() const {
-  return a_;
-}
-
 void graph_serv::selective_create_node_(const std::pair<std::string,int>& target,
                                         const std::string nid_str)
 {
-  if(target.first == a_.eth && target.second == a_.port){
+  if(target.first == argv().eth && target.second == argv().port){
 
     pfi::concurrent::scoped_lock lk(wlock(rw_mutex()));
     this->create_node_here(nid_str);
@@ -368,7 +364,7 @@ void graph_serv::selective_create_node_(const std::pair<std::string,int>& target
   }else{
     // must not lock here
     client::graph c(target.first, target.second, 5.0);
-    c.create_node_here(a_.name, nid_str);
+    c.create_node_here(argv().name, nid_str);
   }
 }
 
@@ -377,19 +373,19 @@ void graph_serv::find_from_cht_(const std::string& key,
                                 std::vector<std::pair<std::string, int> >& out) {
   out.clear();
 #ifdef HAVE_ZOOKEEPER_H
-  common::cht ht(zk_, a_.type, a_.name);
+  common::cht ht(zk_, argv().type, argv().name);
   ht.find(key, out, n); //replication number of local_node
 #else
   //cannot reach here, assertion!
-  assert(a_.is_standalone());
-  //out.push_back(make_pair(a_.eth, a_.port));
+  assert(argv().is_standalone());
+  //out.push_back(make_pair(argv().eth, argv().port));
 #endif
 }
 
 void graph_serv::get_members_(std::vector<std::pair<std::string, int> >& ret) {
   ret.clear();
 #ifdef HAVE_ZOOKEEPER_H
-  common::get_all_actors(*zk_, a_.type, a_.name, ret);
+  common::get_all_actors(*zk_, argv().type, argv().name, ret);
 
   if(ret.empty()){
     return;
@@ -397,7 +393,7 @@ void graph_serv::get_members_(std::vector<std::pair<std::string, int> >& ret) {
   try{
     // remove myself
     for(std::vector<std::pair<std::string,int> >::iterator it = ret.begin(); it != ret.end(); it++){
-      if(it->first == a_.eth && it->second == a_.port){
+      if(it->first == argv().eth && it->second == argv().port){
         it = ret.erase(it);
         it--;
         continue;
