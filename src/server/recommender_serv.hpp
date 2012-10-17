@@ -53,8 +53,6 @@ struct rcmdr : public framework::mixable<jubatus::recommender::recommender_base,
   void clear() {}
 };
 
-// typedef std::vector<std::pair<std::string, jubatus::datum> > rows;
-
 class recommender_serv : public framework::server_base {
 public:
   recommender_serv(const framework::server_argv& a,
