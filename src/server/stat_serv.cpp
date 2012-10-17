@@ -29,13 +29,19 @@ namespace server {
 
 stat_serv::stat_serv(const server_argv& a,
                      const cshared_ptr<lock_service>& zk)
-    : mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-                                     a.interval_count, a.interval_sec)),
+    :
+#ifdef HAVE_ZOOKEEPER_H
+    mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+                                   a.interval_count, a.interval_sec)),
+#endif
       a_(a) {
   config_.window_size = 1024; // default till users call set_config
   common::cshared_ptr<stat::mixable_stat> model(new stat::mixable_stat(config_.window_size));
   stat_.set_model(model);
+
+#ifdef HAVE_ZOOKEEPER_H
   mixer_->register_mixable(&stat_);
+#endif
 }
 
 stat_serv::~stat_serv() {

@@ -44,14 +44,20 @@ linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
 
 classifier_serv::classifier_serv(const framework::server_argv& a,
                                  const cshared_ptr<lock_service>& zk)
-    : mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-                                     a.interval_count, a.interval_sec)),
+    :
+#ifdef HAVE_ZOOKEEPER_H
+    mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+                                   a.interval_count, a.interval_sec)),
+#endif
       a_(a) {
   clsfer_.set_model(make_model(a));
-  mixer_->register_mixable(&clsfer_);
 
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
+
+#ifdef HAVE_ZOOKEEPER_H
+  mixer_->register_mixable(&clsfer_);
   mixer_->register_mixable(&wm_);
+#endif
 }
 
 classifier_serv::~classifier_serv() {
