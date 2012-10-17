@@ -43,12 +43,15 @@ public:
 
   explicit server_helper(const server_argv& a)
       : a_(a),
-#ifdef HAVE_ZOOKEEPER_H
-        zk_(a_.is_standalone() ? NULL : common::create_lock_service("zk", a.z, a.timeout, make_logfile_name())),
-#endif
-        server_(new Server(a, zk_)),
         idgen_(a_.is_standalone()),
-        use_cht_(false) {}
+        use_cht_(false) {
+#ifdef HAVE_ZOOKEEPER_H
+    if (a_.is_standalone()) {
+      zk_.reset(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name()));
+    }
+#endif
+    server_.reset(new Server(a, zk_));
+  }
 
   std::map<std::string, std::string> get_loads() const {
     std::map<std::string, std::string> result;
