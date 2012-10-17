@@ -58,11 +58,11 @@ classifier_serv::~classifier_serv() {
 }
 
 void classifier_serv::get_status(status_t& status) const {
-  map<string, string> my_status;
+  status_t my_status;
   clsfer_.get_model()->get_status(my_status);
   my_status["storage"] = clsfer_.get_model()->type();
 
-  status[get_server_identifier(a_)].insert(my_status.begin(), my_status.end());
+  status.insert(my_status.begin(), my_status.end());
 }
 
 int classifier_serv::set_config(const config_data& config) {
