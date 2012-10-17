@@ -46,10 +46,7 @@ mixer::mixer* stat_serv::get_mixer() const {
 }
 
 void stat_serv::get_status(status_t& status) const {
-  map<string, string> my_status;
-  my_status["storage"] = stat_.get_model()->type();
-
-  status[get_server_identifier(a_)].insert(my_status.begin(), my_status.end());
+  status.insert(make_pair("storage", stat_.get_model()->type()));
 }
 
 bool stat_serv::set_config(const config_data& config){
