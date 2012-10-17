@@ -42,11 +42,10 @@ public:
   typedef typename Server::status_t status_t;
 
   explicit server_helper(const server_argv& a)
-      : a_(a),
-        idgen_(a_.is_standalone()),
+      : idgen_(a.is_standalone()),
         use_cht_(false) {
 #ifdef HAVE_ZOOKEEPER_H
-    if (!a_.is_standalone()) {
+    if (!a.is_standalone()) {
       zk_.reset(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name()));
     }
 #endif
@@ -67,18 +66,19 @@ public:
 
   std::map<std::string, status_t> get_status() const {
     std::map<std::string, status_t> status;
-    status_t& data = status[get_server_identifier(a_)];
+    const server_argv& a = server_->argv();
+    status_t& data = status[get_server_identifier(a)];
 
     util::get_machine_status(data);
   
-    data["timeout"] = pfi::lang::lexical_cast<std::string>(a_.timeout);
-    data["threadnum"] = pfi::lang::lexical_cast<std::string>(a_.threadnum);
-    data["tmpdir"] = a_.tmpdir;
-    data["interval_sec"] = pfi::lang::lexical_cast<std::string>(a_.interval_sec);
-    data["interval_count"] = pfi::lang::lexical_cast<std::string>(a_.interval_count);
-    data["is_standalone"] = pfi::lang::lexical_cast<std::string>(a_.is_standalone());
+    data["timeout"] = pfi::lang::lexical_cast<std::string>(a.timeout);
+    data["threadnum"] = pfi::lang::lexical_cast<std::string>(a.threadnum);
+    data["tmpdir"] = a.tmpdir;
+    data["interval_sec"] = pfi::lang::lexical_cast<std::string>(a.interval_sec);
+    data["interval_count"] = pfi::lang::lexical_cast<std::string>(a.interval_count);
+    data["is_standalone"] = pfi::lang::lexical_cast<std::string>(a.is_standalone());
     data["VERSION"] = JUBATUS_VERSION;
-    data["PROGNAME"] = a_.program_name;
+    data["PROGNAME"] = a.program_name;
 
     data["update_count"] = pfi::lang::lexical_cast<std::string>(server_->update_count());
 
@@ -86,7 +86,7 @@ public:
 
 #ifdef HAVE_ZOOKEEPER_H
     server_->get_mixer()->get_status(data);
-    data["zk"] = a_.z;
+    data["zk"] = a.z;
     data["use_cht"] = pfi::lang::lexical_cast<std::string>(use_cht_);
 #endif
 
@@ -98,37 +98,38 @@ public:
   }
 
   int start(pfi::network::mprpc::rpc_server& serv) {
+    const server_argv& a = server_->argv();
 #ifdef HAVE_ZOOKEEPER_H
-    if (!a_.is_standalone()) {
+    if (!a.is_standalone()) {
       ls = zk_;
-      common::prepare_jubatus(*zk_, a_.type, a_.name);
+      common::prepare_jubatus(*zk_, a.type, a.name);
     
       std::string counter_path;
-      common::build_actor_path(counter_path, a_.type, a_.name);
+      common::build_actor_path(counter_path, a.type, a.name);
       idgen_.set_ls(zk_, counter_path);
 
-      if (a_.join) { // join to the existing cluster with -j option
-        LOG(INFO) << "joining to the cluseter " << a_.name;
+      if (a.join) { // join to the existing cluster with -j option
+        LOG(INFO) << "joining to the cluseter " << a.name;
         LOG(ERROR) << "join is not supported yet :(";
       }
     
       if (use_cht_) {
-        jubatus::common::cht::setup_cht_dir(*zk_, a_.type, a_.name);
-        jubatus::common::cht ht(zk_, a_.type, a_.name);
-        ht.register_node(a_.eth, a_.port);
+        jubatus::common::cht::setup_cht_dir(*zk_, a.type, a.name);
+        jubatus::common::cht ht(zk_, a.type, a.name);
+        ht.register_node(a.eth, a.port);
       }
     
       // FIXME(rethink): is this sequence correct?
-      register_actor(*zk_, a_.type, a_.name, a_.eth, a_.port);
+      register_actor(*zk_, a.type, a.name, a.eth, a.port);
       server_->get_mixer()->start();
     }
 #endif
 
-    if (serv.serv(a_.port, a_.threadnum)) {
-      LOG(INFO) << "running in port=" << a_.port;
+    if (serv.serv(a.port, a.threadnum)) {
+      LOG(INFO) << "running in port=" << a.port;
       return 0;
     } else {
-      LOG(ERROR) << "failed starting server: any process using port " << a_.port << "?";
+      LOG(ERROR) << "failed starting server: any process using port " << a.port << "?";
       return -1;
     }
   }
@@ -146,14 +147,13 @@ private:
     // FIXME: need to decide the log file
     // without log output file, zkclient outputs to stderr
     std::string logfile = "/tmp/";
-    logfile += a_.program_name;
+    logfile += server_->argv().program_name;
     logfile += ".";
     logfile += pfi::lang::lexical_cast<std::string>(getpid());
     logfile += ".zklog";
     return logfile;
   }
                                       
-  const server_argv a_;
   common::cshared_ptr<jubatus::common::lock_service> zk_;
   common::cshared_ptr<Server> server_;
   common::global_id_generator idgen_;

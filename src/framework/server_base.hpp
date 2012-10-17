@@ -56,7 +56,6 @@ public:
     return rw_mutex_;
   }
 
-protected:
   const server_argv& argv() const {
     return argv_;
   }
