@@ -47,7 +47,7 @@ def build(bld):
   build_one(bld, "regression", 'jubaconverter jubastorage', 'linear_function_mixer.cpp')
 
   # #new recommender
-  # build_one(bld, "recommender", 'jubaconverter jubastorage')
+  build_one(bld, "recommender", 'jubaconverter jubastorage')
 
   build_one(bld, "stat")
 

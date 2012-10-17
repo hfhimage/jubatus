@@ -21,26 +21,39 @@
 #include <pficommon/lang/cast.h>
 
 #include "../common/exception.hpp"
+#include "../framework/mixer/linear_mixer.hpp"
 #include "../fv_converter/converter_config.hpp"
 #include "../fv_converter/datum.hpp"
 #include "../fv_converter/revert.hpp"
 #include "../recommender/recommender_factory.hpp"
 
+using namespace std;
 using namespace pfi::lang;
-using std::string;
-using jubatus::framework::convert;
+using namespace jubatus::common;
+using namespace jubatus::framework;
 
 namespace jubatus {
 namespace server {
 
-recommender_serv::recommender_serv(const framework::server_argv& a)
-  :jubatus_serv(a, a.tmpdir)
-{
-  //  rcmdr_.set_model(make_model()); -> we'd have to make it safer
-  register_mixable(&rcmdr_);
+recommender_serv::recommender_serv(const server_argv& a,
+                                   const cshared_ptr<lock_service>& zk)
+    : mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+                                     a.interval_count, a.interval_sec)),
+      a_(a) {
+  mixer_->register_mixable(&rcmdr_);
 }
 
 recommender_serv::~recommender_serv(){
+}
+
+void recommender_serv::get_status(status_t& status) const {
+  status_t my_status;
+  my_status["clear_row_cnt"] = lexical_cast<string>(clear_row_cnt_);
+  my_status["update_row_cnt"] = lexical_cast<string>(update_row_cnt_);
+  my_status["build_cnt"] = lexical_cast<string>(build_cnt_);
+  my_status["mix_cnt"] = lexical_cast<string>(mix_cnt_);
+
+  status.insert(my_status.begin(), my_status.end());
 }
 
 int recommender_serv::set_config(config_data config)
@@ -92,16 +105,10 @@ int recommender_serv::clear()
   return 0;
 }
 
-common::cshared_ptr<recommender_base> recommender_serv::make_model(){
-  return common::cshared_ptr<recommender_base>
-    (jubatus::recommender::create_recommender(config_.method));
+common::cshared_ptr<recommender::recommender_base> recommender_serv::make_model(){
+  return cshared_ptr<recommender::recommender_base>
+    (recommender::create_recommender(config_.method));
 }  
-
-void recommender_serv::after_load(){
-  clear();
-}
-
-
 
 datum recommender_serv::complete_row_from_id(std::string id)
 {
@@ -193,8 +200,9 @@ float recommender_serv::similarity(const datum& l, const datum& r){
   sfv_t v0, v1;
   converter_->convert(d0, v0);
   converter_->convert(d1, v1);
-  return recommender_base::calc_similality(v0, v1);
+  return recommender::recommender_base::calc_similality(v0, v1);
 }
+
 float recommender_serv::l2norm(const datum& q){
   check_set_config();
 
@@ -203,23 +211,8 @@ float recommender_serv::l2norm(const datum& q){
 
   sfv_t v0;
   converter_->convert(d0, v0);
-  return recommender_base::calc_l2norm(v0);
+  return recommender::recommender_base::calc_l2norm(v0);
 
-}
-
-std::map<std::string, std::map<std::string, std::string> > recommender_serv::get_status()
-{
-  std::map<std::string, std::string> ret0;
-
-  ret0["clear_row_cnt"] = pfi::lang::lexical_cast<std::string>(clear_row_cnt_);
-  ret0["update_row_cnt"] = pfi::lang::lexical_cast<std::string>(update_row_cnt_);
-  ret0["build_cnt"] = pfi::lang::lexical_cast<std::string>(build_cnt_);
-  ret0["mix_cnt"] = pfi::lang::lexical_cast<std::string>(mix_cnt_);
-
-  std::map<std::string, std::map<std::string,std::string> > ret = jubatus_serv::get_status();
-
-  ret[get_server_identifier()].insert(ret0.begin(), ret0.end());
-  return ret;
 }
 
 void recommender_serv::check_set_config()const
@@ -229,6 +222,15 @@ void recommender_serv::check_set_config()const
   }
 }
 
+vector<mixable0*> recommender_serv::get_mixables() {
+  vector<mixable0*> mixables;
+  mixables.push_back(&rcmdr_);
+  return mixables;
+}
+
+const server_argv& recommender_serv::get_argv() const {
+  return a_;
+}
 
 } // namespace recommender
 } // namespace jubatus

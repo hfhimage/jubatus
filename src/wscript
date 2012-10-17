@@ -9,7 +9,7 @@ import Options
 # '''
 subdirs = '''
 common plugin stat
-classifier fv_converter regression storage
+classifier fv_converter recommender regression storage
 framework server
 cmd jubavisor
 '''
