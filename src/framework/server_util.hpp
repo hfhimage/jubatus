@@ -115,9 +115,9 @@ int run_server(int args, char** argv, const std::string& type)
     ImplServerClass impl_server(server_argv(args, argv, type));
 #ifdef HAVE_ZOOKEEPER_H
     impl_server.get_p()->get_mixer()->register_api(impl_server);
-    jubatus::util::set_exit_on_term();
     ::atexit(jubatus::framework::atexit);
 #endif // HAVE_ZOOKEEPER_H
+    jubatus::util::set_exit_on_term();
     jubatus::util::ignore_sigpipe();
     return impl_server.run();
   } catch (const jubatus::exception::jubatus_exception& e) {
