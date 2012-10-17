@@ -17,10 +17,13 @@
 
 #pragma once
 
+#include "../common/global_id_generator.hpp"
 #include "../framework.hpp"
-#include "graph_types.hpp"
+#include "../framework/mixer/mixer.hpp"
+#include "../framework/server_base.hpp"
 #include "../graph/graph_base.hpp"
 #include "../graph/graph_wo_index.hpp"
+#include "graph_types.hpp"
 
 namespace jubatus { namespace server {
 
@@ -54,13 +57,17 @@ struct mixable_graph : public framework::mixable<jubatus::graph::graph_base, std
   };
 };
 
-typedef std::string node_id;
-
-class graph_serv : public framework::jubatus_serv {
+class graph_serv : public framework::server_base {
 public:
-
-  graph_serv(const framework::server_argv& a);
+  graph_serv(const framework::server_argv& a,
+             const common::cshared_ptr<common::lock_service>& zk);
   virtual ~graph_serv();
+
+  framework::mixer::mixer* get_mixer() const {
+    return mixer_.get();
+  }
+
+  void get_status(status_t& status) const;
 
   std::string create_node(); //update cht
 
@@ -96,8 +103,6 @@ public:
 
   edge_info get_edge(const std::string& nid, const edge_id_t& e) const; //analysis cht
 
-  std::map<std::string,std::map<std::string,std::string > > get_status() const; //analysis broadcast
-
   // internal apis used between servers
   int create_node_here(const std::string& nid);
   int create_global_node(const std::string& nid);
@@ -105,11 +110,24 @@ public:
 
   int create_edge_here(edge_id_t eid, const edge_info& ei);
 
-  void after_load();
+protected:
+  std::vector<framework::mixable0*> get_mixables();
+  const framework::server_argv& get_argv() const;
 
 private:
   void selective_create_node_(const std::pair<std::string,int>& target,
                               const std::string nid_str);
+
+  void find_from_cht_(const std::string& key,
+                      size_t n,
+                      std::vector<std::pair<std::string, int> >& out);
+  void get_members_(std::vector<std::pair<std::string, int> >& ret);
+
+  common::cshared_ptr<common::lock_service> zk_;
+
+  pfi::lang::scoped_ptr<framework::mixer::mixer> mixer_;
+  const framework::server_argv a_;
+  common::global_id_generator idgen_;
 
   mixable_graph g_;
 };

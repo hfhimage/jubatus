@@ -16,22 +16,25 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "graph_serv.hpp"
-#include "graph_types.hpp"
 
-#include "../graph/graph_factory.hpp"
-#include "../common/util.hpp"
-#include "../common/membership.hpp"
-#include "graph_client.hpp"
-
-#include "../framework/aggregators.hpp"
-
+#include <cassert>
+#include <sstream>
 #include <pficommon/lang/cast.h>
 #include <pficommon/concurrent/lock.h>
-#include <sstream>
-
 #include <pficommon/system/time_util.h>
+
+#include "../common/util.hpp"
+#include "../common/membership.hpp"
+#include "../framework/aggregators.hpp"
+#include "../framework/mixer/linear_mixer.hpp"
+#include "../graph/graph_factory.hpp"
+#include "graph_client.hpp"
+#include "graph_types.hpp"
+
 using pfi::system::time::clock_time;
 using pfi::system::time::get_clock_time;
+using namespace jubatus::common;
+using namespace jubatus::framework;
 
 namespace jubatus { namespace server {
 
@@ -54,16 +57,27 @@ inline uint64_t n2i(const node_id& id){
   return nodeid2uint64(id);
 }
 
-graph_serv::graph_serv(const framework::server_argv& a)
-  : jubatus_serv(a)
-{
-  common::cshared_ptr<jubatus::graph::graph_base> 
+graph_serv::graph_serv(const framework::server_argv& a,
+                       const cshared_ptr<lock_service>& zk)
+    : zk_(zk),
+      mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+                                     a.interval_count, a.interval_sec)),
+      a_(a),
+      idgen_(a_.is_standalone()) {
+  cshared_ptr<jubatus::graph::graph_base> 
     g(jubatus::graph::create_graph("graph_wo_index"));
   g_.set_model(g);
-  register_mixable(&g_);
+  mixer_->register_mixable(&g_);
 }
+
 graph_serv::~graph_serv()
 {}
+
+void graph_serv::get_status(status_t& status) const {
+  status_t my_status;
+  g_.get_model()->get_status(my_status);
+  status.insert(my_status.begin(), my_status.end());
+}
 
 std::string graph_serv::create_node(){ /* no lock here */
   uint64_t nid = idgen_.generate();
@@ -74,7 +88,7 @@ std::string graph_serv::create_node(){ /* no lock here */
     // guarantees there'll be no data confliction
     {
       std::vector<std::pair<std::string, int> > nodes;
-      find_from_cht(nid_str, 2, nodes);
+      find_from_cht_(nid_str, 2, nodes);
       if(nodes.empty()){
         throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error("fatal: no server found in cht: "+nid_str));
       }
@@ -93,7 +107,7 @@ std::string graph_serv::create_node(){ /* no lock here */
     }
 
   }else{
-    pfi::concurrent::scoped_lock lk(wlock(m_));
+    pfi::concurrent::scoped_lock lk(wlock(rw_mutex()));
     this->create_node_here(nid_str);
   }
   DLOG(INFO) << "new node created: " << nid_str;
@@ -116,7 +130,7 @@ int graph_serv::remove_node(const std::string& nid){
     // send true remove_node_ to other machine,
     // if conflicts with create_node, users should re-run to ensure removal
     std::vector<std::pair<std::string, int> > members;
-    get_members(members);
+    get_members_(members);
     
     if(not members.empty()){
       common::mprpc::rpc_mclient c(members, a_.timeout); //create global node
@@ -141,13 +155,13 @@ int graph_serv::create_edge(const std::string& id, const edge_info& ei)  /* no l
     // we dont need global locking, because getting unique id from zk
     // guarantees there'll be no data confliction
     std::vector<std::pair<std::string, int> > nodes;
-    find_from_cht(ei.src, 2, nodes);
+    find_from_cht_(ei.src, 2, nodes);
     if(nodes.empty()){
       throw JUBATUS_EXCEPTION(jubatus::exception::runtime_error("fatal: no server found in cht: "+ei.src));
     }
     // TODO: assertion: nodes[0] should be myself
     {
-      pfi::concurrent::scoped_lock lk(wlock(m_));
+      pfi::concurrent::scoped_lock lk(wlock(rw_mutex()));
       this->create_edge_here(eid, ei);
     }
     for(size_t i = 1; i < nodes.size(); ++i){
@@ -165,7 +179,7 @@ int graph_serv::create_edge(const std::string& id, const edge_info& ei)  /* no l
       }
     }
   }else{
-    pfi::concurrent::scoped_lock lk(wlock(m_));
+    pfi::concurrent::scoped_lock lk(wlock(rw_mutex()));
     this->create_edge_here(eid, ei);
   }
 
@@ -293,19 +307,6 @@ int graph_serv::clear(){
   return 0;
 }
 
-std::map<std::string, std::map<std::string,std::string> > graph_serv::get_status()const
-{
-  std::map<std::string,std::string> ret0;
-
-  g_.get_model()->get_status(ret0);
-
-  std::map<std::string, std::map<std::string,std::string> > ret =
-    jubatus_serv::get_status();
-
-  ret[get_server_identifier()].insert(ret0.begin(), ret0.end());
-  return ret;
-}
-
 int graph_serv::create_node_here(const std::string& nid)
 {
   try{
@@ -348,14 +349,22 @@ int graph_serv::create_edge_here(edge_id_t eid, const edge_info& ei)
   return 0;
 }
 
-void graph_serv::after_load(){}
+std::vector<mixable0*> graph_serv::get_mixables() {
+  std::vector<mixable0*> mixables;
+  mixables.push_back(&g_);
+  return mixables;
+}
+
+const server_argv& graph_serv::get_argv() const {
+  return a_;
+}
 
 void graph_serv::selective_create_node_(const std::pair<std::string,int>& target,
                                         const std::string nid_str)
 {
   if(target.first == a_.eth && target.second == a_.port){
 
-    pfi::concurrent::scoped_lock lk(wlock(m_));
+    pfi::concurrent::scoped_lock lk(wlock(rw_mutex()));
     this->create_node_here(nid_str);
 
   }else{
@@ -365,5 +374,41 @@ void graph_serv::selective_create_node_(const std::pair<std::string,int>& target
   }
 }
 
+void graph_serv::find_from_cht_(const std::string& key,
+                                size_t n,
+                                std::vector<std::pair<std::string, int> >& out) {
+  out.clear();
+#ifdef HAVE_ZOOKEEPER_H
+  common::cht ht(zk_, a_.type, a_.name);
+  ht.find(key, out, n); //replication number of local_node
+#else
+  //cannot reach here, assertion!
+  assert(a_.is_standalone());
+  //out.push_back(make_pair(a_.eth, a_.port));
+#endif
+}
+
+void graph_serv::get_members_(std::vector<std::pair<std::string, int> >& ret) {
+  ret.clear();
+#ifdef HAVE_ZOOKEEPER_H
+  common::get_all_actors(*zk_, a_.type, a_.name, ret);
+
+  if(ret.empty()){
+    return;
+  }
+  try{
+    // remove myself
+    for(std::vector<std::pair<std::string,int> >::iterator it = ret.begin(); it != ret.end(); it++){
+      if(it->first == a_.eth && it->second == a_.port){
+        it = ret.erase(it);
+        it--;
+        continue;
+      }
+    }
+  }catch(...){
+    // eliminate the exception "no clients."
+  }
+#endif
+}
 
 }}
