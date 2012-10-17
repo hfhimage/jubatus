@@ -59,19 +59,17 @@ inline uint64_t n2i(const node_id& id){
 
 graph_serv::graph_serv(const framework::server_argv& a,
                        const cshared_ptr<lock_service>& zk)
-    :
-#ifdef HAVE_ZOOKEEPER_H
-    zk_(zk),
-    mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-                                   a.interval_count, a.interval_sec)),
-#endif
-      a_(a),
+    : a_(a),
       idgen_(a_.is_standalone()) {
   cshared_ptr<jubatus::graph::graph_base> 
     g(jubatus::graph::create_graph("graph_wo_index"));
   g_.set_model(g);
 
 #ifdef HAVE_ZOOKEEPER_H
+  zk_ = zk;
+  mixer_.reset(new mixer::linear_mixer(
+      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+      a.interval_count, a.interval_sec));
   mixer_->register_mixable(&g_);
 #endif
 }

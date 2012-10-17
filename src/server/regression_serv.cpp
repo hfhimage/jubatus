@@ -44,16 +44,14 @@ linear_function_mixer::model_ptr make_model(const framework::server_argv& arg) {
 
 regression_serv::regression_serv(const framework::server_argv& a,
                                  const cshared_ptr<lock_service>& zk)
-    :
-#ifdef HAVE_ZOOKEEPER_H
-    mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-                                   a.interval_count, a.interval_sec)),
-#endif
-      a_(a) {
+    : a_(a) {
   gresser_.set_model(make_model(a));
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
 
 #ifdef HAVE_ZOOKEEPER_H
+  mixer_.reset(new mixer::linear_mixer(
+      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+      a.interval_count, a.interval_sec));
   mixer_->register_mixable(&gresser_);
   mixer_->register_mixable(&wm_);
 #endif

@@ -37,13 +37,11 @@ namespace server {
 
 recommender_serv::recommender_serv(const server_argv& a,
                                    const cshared_ptr<lock_service>& zk)
-    :
+    : a_(a) {
 #ifdef HAVE_ZOOKEEPER_H
-    mixer_(new mixer::linear_mixer(mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-                                   a.interval_count, a.interval_sec)),
-#endif
-      a_(a) {
-#ifdef HAVE_ZOOKEEPER_H
+  mixer_.reset(new mixer::linear_mixer(
+      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
+      a.interval_count, a.interval_sec));
   mixer_->register_mixable(&rcmdr_);
 #endif
 }
