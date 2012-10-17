@@ -135,7 +135,7 @@ public:
   }
 
   pfi::concurrent::rw_mutex& rw_mutex() {
-    return rw_mutex_;
+    return server_->rw_mutex();
   }
 
 private:
@@ -152,7 +152,6 @@ private:
                                       
   const server_argv a_;
   common::cshared_ptr<jubatus::common::lock_service> zk_;
-  pfi::concurrent::rw_mutex rw_mutex_;
   common::cshared_ptr<Server> server_;
   common::global_id_generator idgen_;
   bool use_cht_;

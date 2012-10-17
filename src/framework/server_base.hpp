@@ -21,6 +21,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <pficommon/concurrent/rwmutex.h>
 #include <pficommon/lang/shared_ptr.h>
 #include "server_util.hpp"
 
@@ -51,11 +52,16 @@ public:
     return update_count_;
   }
 
+  pfi::concurrent::rw_mutex& rw_mutex() {
+    return rw_mutex_;
+  }
+
 protected:
   virtual std::vector<mixable0*> get_mixables() = 0;
   virtual const server_argv& get_argv() const = 0;
 
 private:
+  pfi::concurrent::rw_mutex rw_mutex_;
   uint64_t update_count_;
 };
 
