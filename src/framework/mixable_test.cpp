@@ -10,6 +10,8 @@ namespace jubatus {
 namespace framework {
 
 struct int_model {
+  int_model() : value(0) {}
+
   int value;
 
   void save(std::ostream & ofs) {
