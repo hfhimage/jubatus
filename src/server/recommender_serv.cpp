@@ -46,7 +46,7 @@ recommender_serv::recommender_serv(const server_argv& a,
 #endif
 }
 
-recommender_serv::~recommender_serv(){
+recommender_serv::~recommender_serv() {
 }
 
 void recommender_serv::get_status(status_t& status) const {
@@ -59,8 +59,7 @@ void recommender_serv::get_status(status_t& status) const {
   status.insert(my_status.begin(), my_status.end());
 }
 
-int recommender_serv::set_config(config_data config)
-{
+int recommender_serv::set_config(config_data config) {
   shared_ptr<fv_converter::datum_to_fv_converter> converter
       = framework::make_fv_converter(config.converter);
   config_ = config;
@@ -69,14 +68,12 @@ int recommender_serv::set_config(config_data config)
   return 0;
 }
   
-config_data recommender_serv::get_config()
-{
+config_data recommender_serv::get_config() {
   check_set_config();
   return config_;
 }
 
-int recommender_serv::clear_row(std::string id)
-{
+int recommender_serv::clear_row(std::string id) {
   check_set_config();
 
   ++clear_row_cnt_;
@@ -84,8 +81,7 @@ int recommender_serv::clear_row(std::string id)
   return 0;
 }
 
-int recommender_serv::update_row(std::string id,datum dat)
-{
+int recommender_serv::update_row(std::string id,datum dat) {
   check_set_config();
 
   ++update_row_cnt_;
@@ -97,8 +93,7 @@ int recommender_serv::update_row(std::string id,datum dat)
   return 0;
 }
 
-int recommender_serv::clear()
-{
+int recommender_serv::clear() {
   check_set_config();
   clear_row_cnt_ = 0;
   update_row_cnt_ = 0;
@@ -108,13 +103,12 @@ int recommender_serv::clear()
   return 0;
 }
 
-common::cshared_ptr<recommender::recommender_base> recommender_serv::make_model(){
+common::cshared_ptr<recommender::recommender_base> recommender_serv::make_model() {
   return cshared_ptr<recommender::recommender_base>
     (recommender::create_recommender(config_.method));
 }  
 
-datum recommender_serv::complete_row_from_id(std::string id)
-{
+datum recommender_serv::complete_row_from_id(std::string id) {
   check_set_config();
 
   sfv_t v;
@@ -128,8 +122,7 @@ datum recommender_serv::complete_row_from_id(std::string id)
   return ret0;
 }
 
-datum recommender_serv::complete_row_from_data(datum dat)
-{
+datum recommender_serv::complete_row_from_data(datum dat) {
   check_set_config();
 
   fv_converter::datum d;
@@ -146,8 +139,7 @@ datum recommender_serv::complete_row_from_data(datum dat)
   return ret0;
 }
 
-similar_result recommender_serv::similar_row_from_id(std::string id, size_t ret_num)
-{
+similar_result recommender_serv::similar_row_from_id(std::string id, size_t ret_num) {
   check_set_config();
 
   similar_result ret;
@@ -155,8 +147,7 @@ similar_result recommender_serv::similar_row_from_id(std::string id, size_t ret_
   return ret;
 }
 
-similar_result recommender_serv::similar_row_from_data(datum data, size_t s)
-{
+similar_result recommender_serv::similar_row_from_data(datum data, size_t s) {
   check_set_config();
 
   similar_result ret;
@@ -169,8 +160,7 @@ similar_result recommender_serv::similar_row_from_data(datum data, size_t s)
   return ret;
 }
 
-datum recommender_serv::decode_row(std::string id)
-{
+datum recommender_serv::decode_row(std::string id) {
   check_set_config();
 
   sfv_t v;
@@ -184,8 +174,7 @@ datum recommender_serv::decode_row(std::string id)
   return ret0;
 }
 
-std::vector<std::string> recommender_serv::get_all_rows()
-{
+std::vector<std::string> recommender_serv::get_all_rows() {
   check_set_config();
 
   std::vector<std::string> ret;
@@ -193,7 +182,7 @@ std::vector<std::string> recommender_serv::get_all_rows()
   return ret;
 }
 
-float recommender_serv::similarity(const datum& l, const datum& r){
+float recommender_serv::similarity(const datum& l, const datum& r) {
   check_set_config();
 
   fv_converter::datum d0, d1;
@@ -206,7 +195,7 @@ float recommender_serv::similarity(const datum& l, const datum& r){
   return recommender::recommender_base::calc_similality(v0, v1);
 }
 
-float recommender_serv::l2norm(const datum& q){
+float recommender_serv::l2norm(const datum& q) {
   check_set_config();
 
   fv_converter::datum d0;
@@ -218,9 +207,8 @@ float recommender_serv::l2norm(const datum& q){
 
 }
 
-void recommender_serv::check_set_config()const
-{
-  if (!rcmdr_.get_model()){
+void recommender_serv::check_set_config() const {
+  if (!rcmdr_.get_model()) {
     throw JUBATUS_EXCEPTION(config_not_set());
   }
 }

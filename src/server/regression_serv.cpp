@@ -123,9 +123,8 @@ vector<float> regression_serv::estimate(const vector<jubatus::datum>& data) cons
   return ret; //vector<estimate_results> >::ok(ret);
 }
 
-void regression_serv::check_set_config()const
-{
-  if (!regression_){
+void regression_serv::check_set_config() const {
+  if (!regression_) {
     throw JUBATUS_EXCEPTION(config_not_set());
   }
 }

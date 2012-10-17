@@ -71,8 +71,8 @@ void classifier_serv::get_status(status_t& status) const {
 int classifier_serv::set_config(const config_data& config) {
   DLOG(INFO) << __func__;
 
-  shared_ptr<datum_to_fv_converter> converter
-      = framework::make_fv_converter(config.config);
+  shared_ptr<datum_to_fv_converter> converter =
+      framework::make_fv_converter(config.config);
 
   config_ = config;
   converter_ = converter;
@@ -133,12 +133,12 @@ classifier_serv::classify(const vector<jubatus::datum>& data) const {
     
     vector<estimate_result> r;
     for (vector<classify_result_elem>::const_iterator p = scores.begin();
-         p != scores.end(); ++p){
+         p != scores.end(); ++p) {
       estimate_result e;
       e.label = p->label;
       e.prob = p->score;
       r.push_back(e);
-      if( !isfinite(p->score) ){
+      if (!isfinite(p->score)) {
         LOG(WARNING) << p->label << ":" << p->score;
       }
     }
@@ -147,9 +147,8 @@ classifier_serv::classify(const vector<jubatus::datum>& data) const {
   return ret; //vector<estimate_results> >::ok(ret);
 }
 
-void classifier_serv::check_set_config()const
-{
-  if (!classifier_){
+void classifier_serv::check_set_config()const {
+  if (!classifier_) {
     throw JUBATUS_EXCEPTION(config_not_set());
   }
 }
