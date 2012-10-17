@@ -69,6 +69,11 @@ graph_serv::graph_serv(const framework::server_argv& a,
 
 #ifdef HAVE_ZOOKEEPER_H
   zk_ = zk;
+
+  std::string counter_path;
+  build_actor_path(counter_path, a.type, a.name);
+  idgen_.set_ls(zk_, counter_path);
+
   mixer_.reset(new mixer::linear_mixer(
       mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
       a.interval_count, a.interval_sec));
