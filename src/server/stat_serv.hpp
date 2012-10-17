@@ -68,7 +68,6 @@ public:
   double moment(const std::string&, int, double) const;
 
 protected:
-  std::vector<framework::mixable0*> get_mixables();
   const framework::server_argv& get_argv() const;
 
 private:

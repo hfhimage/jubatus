@@ -92,12 +92,6 @@ double stat_serv::moment(const std::string& key, int n,double c) const{
   return stat_.get_model()->moment(key, n, c);
 }
 
-vector<mixable0*> stat_serv::get_mixables() {
-  vector<mixable0*> mixables;
-  mixables.push_back(&stat_);
-  return mixables;
-}
-
 const server_argv& stat_serv::get_argv() const {
   return a_;
 }

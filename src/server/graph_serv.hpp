@@ -111,7 +111,6 @@ public:
   int create_edge_here(edge_id_t eid, const edge_info& ei);
 
 protected:
-  std::vector<framework::mixable0*> get_mixables();
   const framework::server_argv& get_argv() const;
 
 private:

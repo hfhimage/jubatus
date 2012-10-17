@@ -227,12 +227,6 @@ void recommender_serv::check_set_config()const
   }
 }
 
-vector<mixable0*> recommender_serv::get_mixables() {
-  vector<mixable0*> mixables;
-  mixables.push_back(&rcmdr_);
-  return mixables;
-}
-
 const server_argv& recommender_serv::get_argv() const {
   return a_;
 }

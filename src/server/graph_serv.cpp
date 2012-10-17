@@ -355,12 +355,6 @@ int graph_serv::create_edge_here(edge_id_t eid, const edge_info& ei)
   return 0;
 }
 
-std::vector<mixable0*> graph_serv::get_mixables() {
-  std::vector<mixable0*> mixables;
-  mixables.push_back(&g_);
-  return mixables;
-}
-
 const server_argv& graph_serv::get_argv() const {
   return a_;
 }

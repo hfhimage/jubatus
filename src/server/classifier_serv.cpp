@@ -157,13 +157,6 @@ void classifier_serv::check_set_config()const
   }
 }
 
-vector<mixable0*> classifier_serv::get_mixables() {
-  vector<mixable0*> mixables;
-  mixables.push_back(&clsfer_);
-  mixables.push_back(&wm_);
-  return mixables;
-}
-
 const server_argv& classifier_serv::get_argv() const {
   return a_;
 }

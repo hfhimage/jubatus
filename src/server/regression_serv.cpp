@@ -132,13 +132,6 @@ void regression_serv::check_set_config()const
   }
 }
 
-vector<mixable0*> regression_serv::get_mixables() {
-  vector<mixable0*> mixables;
-  mixables.push_back(&gresser_);
-  mixables.push_back(&wm_);
-  return mixables;
-}
-
 const server_argv& regression_serv::get_argv() const {
   return a_;
 }

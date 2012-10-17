@@ -88,7 +88,6 @@ public:
   void check_set_config()const;
 
 protected:
-  std::vector<framework::mixable0*> get_mixables();
   const framework::server_argv& get_argv() const;
 
 private:
