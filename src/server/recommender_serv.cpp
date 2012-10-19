@@ -21,7 +21,7 @@
 #include <pficommon/lang/cast.h>
 
 #include "../common/exception.hpp"
-#include "../framework/mixer/linear_mixer.hpp"
+#include "../framework/mixer/mixer_factory.hpp"
 #include "../fv_converter/converter_config.hpp"
 #include "../fv_converter/datum.hpp"
 #include "../fv_converter/revert.hpp"
@@ -38,12 +38,9 @@ namespace server {
 recommender_serv::recommender_serv(const server_argv& a,
                                    const cshared_ptr<lock_service>& zk)
     : server_base(a) {
-#ifdef HAVE_ZOOKEEPER_H
-  mixer_.reset(new mixer::linear_mixer(
-      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-      a.interval_count, a.interval_sec));
+  mixer_.reset(mixer::create_mixer(a, zk));
+
   mixer_->register_mixable(&rcmdr_);
-#endif
 }
 
 recommender_serv::~recommender_serv() {

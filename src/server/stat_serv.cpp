@@ -18,7 +18,7 @@
 #include "stat_serv.hpp"
 
 #include "../common/shared_ptr.hpp"
-#include "../framework/mixer/linear_mixer.hpp"
+#include "../framework/mixer/mixer_factory.hpp"
 
 using namespace std;
 using namespace jubatus::common;
@@ -34,12 +34,9 @@ stat_serv::stat_serv(const server_argv& a,
   common::cshared_ptr<stat::mixable_stat> model(new stat::mixable_stat(config_.window_size));
   stat_.set_model(model);
 
-#ifdef HAVE_ZOOKEEPER_H
-  mixer_.reset(new mixer::linear_mixer(
-      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-      a.interval_count, a.interval_sec));
+  mixer_.reset(mixer::create_mixer(a, zk));
+
   mixer_->register_mixable(&stat_);
-#endif
 }
 
 stat_serv::~stat_serv() {

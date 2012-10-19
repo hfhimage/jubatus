@@ -20,7 +20,7 @@
 #include "../classifier/classifier_factory.hpp"
 #include "../common/util.hpp"
 #include "../common/vector_util.hpp"
-#include "../framework/mixer/linear_mixer.hpp"
+#include "../framework/mixer/mixer_factory.hpp"
 #include "../fv_converter/datum.hpp"
 #include "../fv_converter/datum_to_fv_converter.hpp"
 #include "../storage/storage_factory.hpp"
@@ -48,13 +48,10 @@ classifier_serv::classifier_serv(const framework::server_argv& a,
   clsfer_.set_model(make_model(a));
   wm_.set_model(mixable_weight_manager::model_ptr(new weight_manager));
 
-#ifdef HAVE_ZOOKEEPER_H
-  mixer_.reset(new mixer::linear_mixer(
-      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-      a.interval_count, a.interval_sec));
+  mixer_.reset(mixer::create_mixer(a, zk));
+
   mixer_->register_mixable(&clsfer_);
   mixer_->register_mixable(&wm_);
-#endif
 }
 
 classifier_serv::~classifier_serv() {

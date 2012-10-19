@@ -26,7 +26,7 @@
 #include "../common/util.hpp"
 #include "../common/membership.hpp"
 #include "../framework/aggregators.hpp"
-#include "../framework/mixer/linear_mixer.hpp"
+#include "../framework/mixer/mixer_factory.hpp"
 #include "../graph/graph_factory.hpp"
 #include "graph_client.hpp"
 #include "graph_types.hpp"
@@ -73,12 +73,11 @@ graph_serv::graph_serv(const framework::server_argv& a,
   std::string counter_path;
   build_actor_path(counter_path, a.type, a.name);
   idgen_.set_ls(zk_, counter_path);
-
-  mixer_.reset(new mixer::linear_mixer(
-      mixer::linear_communication::create(zk, a.type, a.name, a.timeout),
-      a.interval_count, a.interval_sec));
-  mixer_->register_mixable(&g_);
 #endif
+
+  mixer_.reset(mixer::create_mixer(a, zk));
+
+  mixer_->register_mixable(&g_);
 }
 
 graph_serv::~graph_serv() {}
