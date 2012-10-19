@@ -25,6 +25,7 @@
 #include <msgpack.hpp>
 
 #include "../common/exception.hpp"
+#include "../common/lock_service.hpp"
 #include "../common/shared_ptr.hpp"
 #include "../common/util.hpp"
 #include <pficommon/lang/noncopyable.h>
@@ -33,10 +34,6 @@
 #include <pficommon/lang/function.h>
 #include <pficommon/network/mprpc.h>
 #include <pficommon/lang/shared_ptr.h>
-
-#ifdef HAVE_ZOOKEEPER_H
-#  include "../common/lock_service.hpp"
-#endif
 
 namespace cmdline{
 class parser;
@@ -103,20 +100,18 @@ void convert(const From& from, To& to){
   msg.get().convert(&to);
 }
 
-#ifdef HAVE_ZOOKEEPER_H
 extern jubatus::common::cshared_ptr<jubatus::common::lock_service> ls;
 void atexit(void);
-#endif
 
 template <class ImplServerClass, class UserServClass>
 int run_server(int args, char** argv, const std::string& type)
 {
   try {
     ImplServerClass impl_server(server_argv(args, argv, type));
-#ifdef HAVE_ZOOKEEPER_H
+
     impl_server.get_p()->get_mixer()->register_api(impl_server);
     ::atexit(jubatus::framework::atexit);
-#endif // HAVE_ZOOKEEPER_H
+
     jubatus::util::set_exit_on_term();
     jubatus::util::ignore_sigpipe();
     return impl_server.run();

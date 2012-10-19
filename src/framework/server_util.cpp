@@ -151,14 +151,14 @@ namespace jubatus { namespace framework {
     return ret.str();
   };
 
-#ifdef HAVE_ZOOKEEPER_H
-    common::cshared_ptr<jubatus::common::lock_service> ls;
+  common::cshared_ptr<jubatus::common::lock_service> ls;
 
   void atexit(void){
+#ifdef HAVE_ZOOKEEPER_H
     if(ls)
       ls->force_close();
-  }
 #endif
+  }
 
 pfi::lang::shared_ptr<fv_converter::datum_to_fv_converter>
 make_fv_converter(const std::string& config) {
