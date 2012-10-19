@@ -22,12 +22,8 @@
 #include <map>
 #include <string>
 #include <glog/logging.h>
-#include <pficommon/concurrent/rwmutex.h>
 #include <pficommon/network/mprpc.h>
 #include <pficommon/system/sysstat.h>
-#include "../common/cht.hpp"
-#include "../common/global_id_generator.hpp"
-#include "../common/membership.hpp"
 #include "../common/shared_ptr.hpp"
 #include "../common/lock_service.hpp"
 #include "mixer/mixer.hpp"
@@ -36,19 +32,27 @@
 namespace jubatus {
 namespace framework {
 
+class server_helper_impl {
+public:
+  explicit server_helper_impl(const server_argv& a);
+  bool prepare_for_start(const server_argv& a, bool use_cht);
+
+  common::cshared_ptr<jubatus::common::lock_service> zk() const {
+    return zk_;
+  }
+
+private:
+  common::cshared_ptr<jubatus::common::lock_service> zk_;
+};
+
 template<typename Server>
 class server_helper {
 public:
   typedef typename Server::status_t status_t;
 
   explicit server_helper(const server_argv& a)
-      : use_cht_(false) {
-#ifdef HAVE_ZOOKEEPER_H
-    if (!a.is_standalone()) {
-      zk_.reset(common::create_lock_service("zk", a.z, a.timeout, make_logfile_name()));
-    }
-#endif
-    server_.reset(new Server(a, zk_));
+      : impl_(a) {
+    server_.reset(new Server(a, impl_.zk()));
   }
 
   std::map<std::string, std::string> get_loads() const {
@@ -83,11 +87,9 @@ public:
 
     server_->get_status(data);
 
-#ifdef HAVE_ZOOKEEPER_H
     server_->get_mixer()->get_status(data);
     data["zk"] = a.z;
     data["use_cht"] = pfi::lang::lexical_cast<std::string>(use_cht_);
-#endif
 
     return status;
   }
@@ -98,27 +100,9 @@ public:
 
   int start(pfi::network::mprpc::rpc_server& serv) {
     const server_argv& a = server_->argv();
-#ifdef HAVE_ZOOKEEPER_H
-    if (!a.is_standalone()) {
-      ls = zk_;
-      common::prepare_jubatus(*zk_, a.type, a.name);
-    
-      if (a.join) { // join to the existing cluster with -j option
-        LOG(INFO) << "joining to the cluseter " << a.name;
-        LOG(ERROR) << "join is not supported yet :(";
-      }
-    
-      if (use_cht_) {
-        jubatus::common::cht::setup_cht_dir(*zk_, a.type, a.name);
-        jubatus::common::cht ht(zk_, a.type, a.name);
-        ht.register_node(a.eth, a.port);
-      }
-   
-      // FIXME(rethink): is this sequence correct?
-      register_actor(*zk_, a.type, a.name, a.eth, a.port);
+    if (impl_.prepare_for_start(a, use_cht_)) {
       server_->get_mixer()->start();
     }
-#endif
 
     if (serv.serv(a.port, a.threadnum)) {
       LOG(INFO) << "running in port=" << a.port;
@@ -138,19 +122,8 @@ public:
   }
 
 private:
-  std::string make_logfile_name() const {
-    // FIXME: need to decide the log file
-    // without log output file, zkclient outputs to stderr
-    std::string logfile = "/tmp/";
-    logfile += server_->argv().program_name;
-    logfile += ".";
-    logfile += pfi::lang::lexical_cast<std::string>(getpid());
-    logfile += ".zklog";
-    return logfile;
-  }
-                                      
-  common::cshared_ptr<jubatus::common::lock_service> zk_;
   common::cshared_ptr<Server> server_;
+  server_helper_impl impl_;
   bool use_cht_;
 };
 
