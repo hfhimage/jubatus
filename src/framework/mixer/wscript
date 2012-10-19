@@ -5,11 +5,17 @@ def configure(conf):
   pass
 
 def build(bld):
+  mixer_source = 'mixer_factory.cpp'
+  if bld.env.HAVE_ZOOKEEPER_H:
+    mixer_source += ' linear_mixer.cpp'
+
   bld.shlib(target = 'jubamixer',
-            source = 'linear_mixer.cpp',
+            source = mixer_source,
             use = 'PFICOMMON jubacommon MSGPACK LIBGLOG jubacommon_mprpc')
 
   bld.install_files('${PREFIX}/include/jubatus/framework/mixer', [
+      'dummy_mixer.hpp',
+      'linear_mixer.hpp',
       'mixer.hpp',
-      'linear_mixer.hpp'
+      'mixer_factory.hpp'
       ])
