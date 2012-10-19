@@ -52,14 +52,14 @@ uint64_t global_id_generator::generate()
   }
 }
 
-#ifdef HAVE_ZOOKEEPER_H
     void global_id_generator::set_ls(cshared_ptr<lock_service>& ls,
                                      const std::string& path_prefix)
 {
+#ifdef HAVE_ZOOKEEPER_H
   path_ = path_prefix + "/id_generator";
   ls_ = ls;
   ls_->create(path_);
-}
 #endif
+}
 
 }}
